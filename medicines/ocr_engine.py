@@ -4,30 +4,26 @@ import easyocr
 from fuzzywuzzy import fuzz, process
 from .models import Medicine
 
-# Initialize EasyOCR reader once (takes time to load)
+
 reader = easyocr.Reader(['en'], gpu=False)
 
 
-# ─────────────────────────────────────────
-# STEP A: Image Pre-Processing
-# ─────────────────────────────────────────
+
 def preprocess_image(image):
     """
     Cleans the raw camera image.
     Handles glare, noise, and contrast issues.
     """
 
-    # 1. Convert to grayscale
+   
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    # 2. Resize for better OCR accuracy
+   
     gray = cv2.resize(gray, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
 
-    # 3. Apply Gaussian Blur to reduce noise/graininess
+    
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
 
-    # 4. Adaptive Thresholding
-    # This handles uneven lighting and glare on foil packaging
     threshold = cv2.adaptiveThreshold(
         blurred,
         255,
@@ -37,16 +33,14 @@ def preprocess_image(image):
         2
     )
 
-    # 5. Remove small noise dots
+   
     kernel = np.ones((1, 1), np.uint8)
     cleaned = cv2.morphologyEx(threshold, cv2.MORPH_CLOSE, kernel)
 
     return cleaned
 
 
-# ─────────────────────────────────────────
-# STEP B: Detect and Crop Medicine Box
-# ─────────────────────────────────────────
+
 def crop_medicine_box(image):
     """
     Tries to detect the edges of the medicine box
@@ -81,9 +75,7 @@ def crop_medicine_box(image):
         return image  # If anything fails, return original
 
 
-# ─────────────────────────────────────────
-# STEP C: Extract Raw Text with EasyOCR
-# ─────────────────────────────────────────
+
 def extract_text_from_image(image):
     """
     Runs EasyOCR on the cleaned image.
@@ -95,9 +87,7 @@ def extract_text_from_image(image):
     return full_text
 
 
-# ─────────────────────────────────────────
-# STEP D: Fuzzy Match OCR Text to Database
-# ─────────────────────────────────────────
+
 def fuzzy_match_medicine(raw_text):
     """
     Takes raw OCR text and finds the closest
@@ -144,9 +134,6 @@ def fuzzy_match_medicine(raw_text):
         return None
 
 
-# ─────────────────────────────────────────
-# MAIN FUNCTION (called by views.py)
-# ─────────────────────────────────────────
 def extract_medicine_name(image):
     """
     Full pipeline:
