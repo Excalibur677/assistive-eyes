@@ -1,0 +1,28 @@
+#python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.pyc
+
+# Django
+db.sqlite3
+*.log
+local_settings.py
+media/
+
+# Virtual Environment
+venv/
+env/
+.env
+
+# EasyOCR Models (too large for GitHub)
+.EasyOCR/
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# VS Code
+.vscode/

@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assistive Eyes — Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:        #060910;
+            --bg-panel:  #0b0f1a;
+            --bg-card:   #0f1520;
+            --bg-elev:   #141c2e;
+            --bg-hover:  #1a2338;
+            --border:    rgba(0,210,255,0.10);
+            --border-md: rgba(0,210,255,0.22);
+            --border-hi: rgba(0,210,255,0.45);
+            --cyan:      #00d2ff;
+            --cyan-dim:  rgba(0,210,255,0.55);
+            --cyan-glow: rgba(0,210,255,0.12);
+            --green:     #00e5a0;
+            --green-gl:  rgba(0,229,160,0.12);
+            --amber:     #ffb830;
+            --amber-gl:  rgba(255,184,48,0.12);
+            --red:       #ff4560;
+            --red-gl:    rgba(255,69,96,0.12);
+            --purple:    #a78bfa;
+            --t1:        #e8edf5;
+            --t2:        #7a90b8;
+            --t3:        #3a4a6b;
+            --grid:      rgba(0,210,255,0.03);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        html, body {
+            height: 100%;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--t1);
+            overflow: hidden;
+        }
+
+        /* Grid bg */
+        body::before {
+            content:'';
+            position:fixed; inset:0;
+            background-image:
+                linear-gradient(var(--grid) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events:none; z-index:0;
+        }
+
+        /* ═══════════════════════════════════
+           LAYOUT
+        ═══════════════════════════════════ */
+        .shell {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            grid-template-rows: 58px 1fr;
+            height: 100vh;
+        }
+
+        /* ═══════════════════════════════════
+           TOPBAR
+        ═══════════════════════════════════ */
+        .topbar {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(6,9,16,0.9);
+            backdrop-filter: blur(20px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 32px; height: 32px;
+            border: 1.5px solid var(--cyan);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px;
+            box-shadow: 0 0 14px var(--cyan-glow);
+        }
+
+        .logo-name {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+        .logo-name span { color: var(--cyan); }
+
+        .logo-tag {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.58rem;
+            letter-spacing: 2.5px;
+            color: var(--t3);
+            text-transform: uppercase;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 5px 14px;
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.62rem;
+            letter-spacing: 1.5px;
+            color: var(--t2);
+        }
+
+        .dot-pulse {
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 6px var(--green);
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+        .topbar-avatar {
+            width: 30px; height: 30px;
+            border-radius: 8px;
+            background: var(--bg-elev);
+            border: 1px solid var(--border-md);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* ═══════════════════════════════════
+           SIDEBAR
+        ═══════════════════════════════════ */
+        .sidebar {
+            border-right: 1px solid var(--border);
+            background: var(--bg-panel);
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            padding: 0 14px;
+            margin-bottom: 6px;
+        }
+
+        .sidebar-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.55rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--t3);
+            padding: 0 10px;
+            margin-bottom: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.83rem;
+            color: var(--t2);
+            transition: all 0.15s;
+            border: 1px solid transparent;
+            user-select: none;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-hover);
+            color: var(--t1);
+        }
+
+        .nav-item.active {
+            background: var(--cyan-glow);
+            border-color: var(--border-md);
+            color: var(--cyan);
+        }
+
+        .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+
+        .nav-badge {
+            margin-left: auto;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.6rem;
+            background: var(--cyan);
+            color: var(--bg);
+            padding: 1px 7px;
+            border-radius: 50px;
+            font-weight: 600;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 8px 14px;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 14px;
+        }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            color: var(--t2);
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+
+        .back-link:hover { color: var(--t1); border-color: var(--border-md); }
+
+        /* ═══════════════════════════════════
+           MAIN CONTENT
+        ═══════════════════════════════════ */
+        .content {
+            overflow-y: auto;
+            background: var(--bg);
+        }
+
+        /* Pages */
+        .page { display: none; padding: 28px 32px; animation: fade-in 0.25s ease; }
+        .page.active { display: block; }
+
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Page header */
+        .page-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 28px;
+        }
+
+        .page-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .page-sub {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.62rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--t3);
+        }
+
+        /* ── STAT CARDS ── */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            padding: 18px 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+
+        .stat-card:hover { border-color: var(--border-md); }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+        }
+
+        .stat-card.cyan::before  { background: var(--cyan); }
+        .stat-card.green::before { background: var(--green); }
+        .stat-card.amber::before { background: var(--amber); }
+        .stat-card.purple::before{ background: var(--purple); }
+
+        .stat-icon {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            opacity: 0.8;
+        }
+
+        .stat-val {
+            font-family: 'Syne', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .stat-card.cyan  .stat-val { color: var(--cyan); }
+        .stat-card.green .stat-val { color: var(--green); }
+        .stat-card.amber .stat-val { color: var(--amber); }
+        .stat-card.purple .stat-val{ color: var(--purple); }
+
+        .stat-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.62rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--t3);
+        }
+
+        /* ── CATEGORY BREAKDOWN ── */
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+
+        .card {
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            overflow: hidden;
+        }
+
+        .card-head {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+
+        .card-body { padding: 16px 18px; }
+
+        /* Category bars */
+        .cat-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .cat-row:last-child { margin-bottom: 0; }
+
+        .cat-name {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.68rem;
+            letter-spacing: 1px;
+            color: var(--t2);
+            width: 110px;
+            flex-shrink: 0;
+        }
+
+        .cat-bar-wrap {
+            flex: 1;
+            height: 6px;
+            background: var(--bg-elev);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .cat-bar {
+            height: 100%;
+            border-radius: 3px;
+            background: var(--cyan);
+            transition: width 0.8s cubic-bezier(.4,0,.2,1);
+        }
+
+        .cat-count {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--t3);
+            width: 18px;
+            text-align: right;
+        }
+
+        /* Recent list */
+        .recent-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.15s;
+            border-radius: 6px;
+            padding: 8px 10px;
+            margin: 0 -10px;
+        }
+        .recent-item:last-child { border-bottom: none; }
+        .recent-item:hover { background: var(--bg-hover); }
+
+        .recent-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .recent-name {
+            font-size: 0.85rem;
+            color: var(--t1);
+            flex: 1;
+        }
+
+        .recent-cat {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            color: var(--t3);
+        }
+
+        /* ═══════════════════════════════════
+           MEDICINES TABLE PAGE
+        ═══════════════════════════════════ */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            transition: border-color 0.2s;
+        }
+
+        .search-box:focus-within { border-color: var(--border-md); }
+
+        .search-box input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
+            color: var(--t1);
+        }
+
+        .search-box input::placeholder { color: var(--t3); }
+
+        .filter-select {
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--t2);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.72rem;
+            outline: none;
+            cursor: pointer;
+            letter-spacing: 1px;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-family: 'Syne', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 700;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--cyan);
+            color: var(--bg);
+        }
+        .btn-primary:hover { background: #33daff; box-shadow: 0 0 20px rgba(0,210,255,.3); }
+
+        .btn-ghost {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--t2);
+        }
+        .btn-ghost:hover { border-color: var(--border-md); color: var(--t1); }
+
+        .btn-danger {
+            background: var(--red-gl);
+            border: 1px solid rgba(255,69,96,0.25);
+            color: var(--red);
+        }
+        .btn-danger:hover { background: rgba(255,69,96,0.2); }
+
+        .btn-success {
+            background: var(--green-gl);
+            border: 1px solid rgba(0,229,160,0.25);
+            color: var(--green);
+        }
+        .btn-success:hover { background: rgba(0,229,160,0.2); }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.72rem;
+            border-radius: 7px;
+        }
+
+        /* Table */
+        .table-wrap {
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: var(--bg-elev);
+        }
+
+        th {
+            padding: 11px 16px;
+            text-align: left;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--t3);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.12s;
+            cursor: pointer;
+        }
+
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: var(--bg-hover); }
+        tbody tr.selected { background: var(--cyan-glow); }
+
+        td {
+            padding: 12px 16px;
+            font-size: 0.83rem;
+            color: var(--t2);
+            vertical-align: middle;
+        }
+
+        td.td-name {
+            font-weight: 500;
+            color: var(--t1);
+        }
+
+        td.td-mono {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--t3);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.58rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .badge-cyan   { background: var(--cyan-glow);  border: 1px solid rgba(0,210,255,.2);  color: var(--cyan); }
+        .badge-green  { background: var(--green-gl);   border: 1px solid rgba(0,229,160,.2);  color: var(--green); }
+        .badge-amber  { background: var(--amber-gl);   border: 1px solid rgba(255,184,48,.2); color: var(--amber); }
+        .badge-purple { background: rgba(167,139,250,.1); border:1px solid rgba(167,139,250,.2); color: var(--purple); }
+        .badge-red    { background: var(--red-gl);     border: 1px solid rgba(255,69,96,.2);  color: var(--red); }
+
+        .actions-cell {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0 0;
+        }
+
+        .page-info {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 1px;
+            color: var(--t3);
+        }
+
+        .page-btns {
+            display: flex;
+            gap: 6px;
+        }
+
+        .page-btn {
+            width: 30px; height: 30px;
+            border-radius: 7px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--t2);
+            cursor: pointer;
+            font-size: 0.75rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s;
+        }
+
+        .page-btn:hover { border-color: var(--border-md); color: var(--t1); }
+        .page-btn.active { background: var(--cyan); border-color: var(--cyan); color: var(--bg); }
+
+        /* ═══════════════════════════════════
+           MODAL
+        ═══════════════════════════════════ */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(6,9,16,0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.open { display: flex; }
+
+        .modal {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-md);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 620px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modal-in 0.25s cubic-bezier(0.32,0.72,0,1);
+            position: relative;
+        }
+
+        @keyframes modal-in {
+            from { opacity: 0; transform: scale(0.96) translateY(10px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-head {
+            padding: 22px 26px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky; top: 0;
+            background: var(--bg-panel);
+            z-index: 2;
+        }
+
+        .modal-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            width: 30px; height: 30px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: none;
+            color: var(--t2);
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s;
+        }
+        .modal-close:hover { color: var(--t1); border-color: var(--border-md); }
+
+        .modal-body { padding: 22px 26px; }
+
+        /* Form */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full { grid-column: 1 / -1; }
+
+        .form-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.62rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--t3);
+        }
+
+        .form-input, .form-textarea, .form-select {
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--t1);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.15s;
+            width: 100%;
+        }
+
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            border-color: var(--border-hi);
+        }
+
+        .form-textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+
+        .form-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            margin-top: 8px;
+        }
+
+        /* ── DELETE CONFIRM ── */
+        .del-modal .modal-body {
+            text-align: center;
+            padding: 32px 26px;
+        }
+
+        .del-icon { font-size: 2.5rem; margin-bottom: 14px; }
+
+        .del-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .del-sub { font-size: 0.85rem; color: var(--t2); margin-bottom: 24px; line-height: 1.6; }
+
+        /* ── TOAST ── */
+        .toast-container {
+            position: fixed;
+            bottom: 24px; right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 2000;
+        }
+
+        .toast {
+            padding: 12px 18px;
+            border-radius: 10px;
+            border: 1px solid;
+            font-size: 0.83rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: toast-in 0.3s ease;
+            min-width: 260px;
+            backdrop-filter: blur(12px);
+        }
+
+        @keyframes toast-in {
+            from { opacity: 0; transform: translateX(20px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        .toast.success { background: rgba(0,229,160,.1); border-color: rgba(0,229,160,.3); color: var(--green); }
+        .toast.error   { background: rgba(255,69,96,.1);  border-color: rgba(255,69,96,.3);  color: var(--red); }
+        .toast.info    { background: var(--cyan-glow);    border-color: var(--border-md);    color: var(--cyan); }
+
+        /* Scrollbar */
+        .content::-webkit-scrollbar,
+        .modal::-webkit-scrollbar { width: 4px; }
+        .content::-webkit-scrollbar-track,
+        .modal::-webkit-scrollbar-track { background: transparent; }
+        .content::-webkit-scrollbar-thumb,
+        .modal::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        /* Empty table state */
+        .empty-table {
+            padding: 48px;
+            text-align: center;
+            color: var(--t3);
+        }
+        .empty-table-icon { font-size: 2rem; margin-bottom: 12px; opacity: 0.5; }
+        .empty-table-txt  { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:2px; }
+
+        /* Loading */
+        .loading-row td {
+            text-align: center;
+            padding: 40px;
+            color: var(--t3);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.72rem;
+            letter-spacing: 2px;
+        }
+
+        /* Responsive tweaks */
+        @media (max-width: 1100px) {
+            .stat-grid { grid-template-columns: repeat(2,1fr); }
+            .two-col   { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="shell">
+
+    <!-- ═══ TOPBAR ═══ -->
+    <header class="topbar">
+        <div class="logo">
+            <div class="logo-icon">👁</div>
+            <div>
+                <div class="logo-name">Assistive<span>Eyes</span></div>
+                <div class="logo-tag">Admin Control Panel</div>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <div class="system-status">
+                <div class="dot-pulse"></div>
+                ALL SYSTEMS NOMINAL
+            </div>
+            <div class="topbar-avatar">👤</div>
+        </div>
+    </header>
+
+    <!-- ═══ SIDEBAR ═══ -->
+    <nav class="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-label">Navigation</div>
+            <div class="nav-item active" onclick="showPage('dashboard', this)">
+                <span class="nav-icon">⬡</span> Dashboard
+            </div>
+            <div class="nav-item" onclick="showPage('medicines', this)">
+                <span class="nav-icon">💊</span> Medicines
+                <span class="nav-badge" id="medCountBadge">—</span>
+            </div>
+            <div class="nav-item" onclick="showPage('add', this)">
+                <span class="nav-icon">＋</span> Add Medicine
+            </div>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-label">System</div>
+            <div class="nav-item" onclick="showPage('about', this)">
+                <span class="nav-icon">ℹ</span> About
+            </div>
+        </div>
+
+        <div class="sidebar-bottom">
+            <a class="back-link" href="/">← Back to Scanner</a>
+        </div>
+    </nav>
+
+    <!-- ═══ CONTENT ═══ -->
+    <main class="content">
+
+        <!-- ── DASHBOARD ── -->
+        <div class="page active" id="page-dashboard">
+            <div class="page-header">
+                <div>
+                    <div class="page-title">Dashboard</div>
+                    <div class="page-sub">System Overview</div>
+                </div>
+                <button class="btn btn-ghost" onclick="loadAll()">↺ &nbsp;Refresh</button>
+            </div>
+
+            <div class="stat-grid">
+                <div class="stat-card cyan">
+                    <div class="stat-icon">💊</div>
+                    <div class="stat-val" id="statTotal">—</div>
+                    <div class="stat-label">Total Medicines</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="stat-icon">🗂</div>
+                    <div class="stat-val" id="statCats">—</div>
+                    <div class="stat-label">Categories</div>
+                </div>
+                <div class="stat-card amber">
+                    <div class="stat-icon">⚠</div>
+                    <div class="stat-val" id="statWarnings">—</div>
+                    <div class="stat-label">With Warnings</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="stat-icon">🔤</div>
+                    <div class="stat-val" id="statGenerics">—</div>
+                    <div class="stat-label">Have Generic Name</div>
+                </div>
+            </div>
+
+            <div class="two-col">
+                <div class="card">
+                    <div class="card-head">
+                        <div class="card-title">Categories</div>
+                        <span class="badge badge-cyan">BREAKDOWN</span>
+                    </div>
+                    <div class="card-body" id="catBreakdown">
+                        <div style="color:var(--t3);font-size:.75rem;">Loading...</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-head">
+                        <div class="card-title">Recent Entries</div>
+                        <span class="badge badge-green">LATEST 5</span>
+                    </div>
+                    <div class="card-body" id="recentList">
+                        <div style="color:var(--t3);font-size:.75rem;">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── MEDICINES TABLE ── -->
+        <div class="page" id="page-medicines">
+            <div class="page-header">
+                <div>
+                    <div class="page-title">Medicines</div>
+                    <div class="page-sub">Database Records</div>
+                </div>
+                <button class="btn btn-primary" onclick="openAddModal()">＋ &nbsp;Add Medicine</button>
+            </div>
+
+            <div class="toolbar">
+                <div class="search-box">
+                    <span style="color:var(--t3)">🔍</span>
+                    <input type="text" id="searchInput" placeholder="Search by name, generic or category…" oninput="filterTable()">
+                </div>
+                <select class="filter-select" id="catFilter" onchange="filterTable()">
+                    <option value="">All Categories</option>
+                </select>
+                <button class="btn btn-ghost" onclick="filterTable()">Filter</button>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Medicine Name</th>
+                            <th>Generic Name</th>
+                            <th>Category</th>
+                            <th>Dosage</th>
+                            <th>Warning</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="medicinesTable">
+                        <tr class="loading-row"><td colspan="7">LOADING DATABASE…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination">
+                <div class="page-info" id="pageInfo">—</div>
+                <div class="page-btns" id="pageBtns"></div>
+            </div>
+        </div>
+
+        <!-- ── ADD MEDICINE PAGE ── -->
+        <div class="page" id="page-add">
+            <div class="page-header">
+                <div>
+                    <div class="page-title">Add Medicine</div>
+                    <div class="page-sub">New Database Entry</div>
+                </div>
+            </div>
+
+            <div class="card" style="max-width:700px;">
+                <div class="card-head">
+                    <div class="card-title">Medicine Details</div>
+                    <span class="badge badge-cyan">NEW RECORD</span>
+                </div>
+                <div class="card-body">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Brand Name *</label>
+                            <input class="form-input" id="add_name" type="text" placeholder="e.g. Crocin">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Generic Name</label>
+                            <input class="form-input" id="add_generic" type="text" placeholder="e.g. Paracetamol">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Category *</label>
+                            <input class="form-input" id="add_category" type="text" placeholder="e.g. Painkiller">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Dosage *</label>
+                            <input class="form-input" id="add_dosage" type="text" placeholder="e.g. 500mg every 6 hours">
+                        </div>
+                        <div class="form-group full">
+                            <label class="form-label">Uses *</label>
+                            <textarea class="form-textarea" id="add_uses" placeholder="What is this medicine used for?"></textarea>
+                        </div>
+                        <div class="form-group full">
+                            <label class="form-label">Side Effects *</label>
+                            <textarea class="form-textarea" id="add_side_effects" placeholder="Known side effects…"></textarea>
+                        </div>
+                        <div class="form-group full">
+                            <label class="form-label">Warnings</label>
+                            <textarea class="form-textarea" id="add_warnings" placeholder="Optional danger alerts…" style="min-height:60px;"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-footer" style="border:none; padding-top:0; margin-top:0; justify-content:flex-start; gap:10px;">
+                        <button class="btn btn-primary" onclick="submitAdd()">＋ &nbsp;Add to Database</button>
+                        <button class="btn btn-ghost" onclick="clearAddForm()">Clear</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── ABOUT ── -->
+        <div class="page" id="page-about">
+            <div class="page-header">
+                <div>
+                    <div class="page-title">About</div>
+                    <div class="page-sub">System Information</div>
+                </div>
+            </div>
+            <div class="card" style="max-width:600px;">
+                <div class="card-head"><div class="card-title">Assistive Eyes</div></div>
+                <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
+                    <div style="font-size:.9rem;color:var(--t2);line-height:1.8;">
+                        A dual-mode medicine label reader for both sighted users and visually impaired individuals.
+                        Built with Django, OpenCV, EasyOCR, and FuzzyWuzzy.
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                        <div class="form-group">
+                            <div class="form-label">Backend</div>
+                            <div style="color:var(--cyan);font-family:'DM Mono',monospace;font-size:.8rem;">Django 6.0 + Python 3.13</div>
+                        </div>
+                        <div class="form-group">
+                            <div class="form-label">Vision</div>
+                            <div style="color:var(--green);font-family:'DM Mono',monospace;font-size:.8rem;">OpenCV + EasyOCR</div>
+                        </div>
+                        <div class="form-group">
+                            <div class="form-label">Matching</div>
+                            <div style="color:var(--amber);font-family:'DM Mono',monospace;font-size:.8rem;">FuzzyWuzzy</div>
+                        </div>
+                        <div class="form-group">
+                            <div class="form-label">Database</div>
+                            <div style="color:var(--purple);font-family:'DM Mono',monospace;font-size:.8rem;">SQLite</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main><!-- /content -->
+</div><!-- /shell -->
+
+<!-- ═══ EDIT MODAL ═══ -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal">
+        <div class="modal-head">
+            <div class="modal-title">Edit Medicine</div>
+            <button class="modal-close" onclick="closeModal('editModal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="edit_id">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Brand Name *</label>
+                    <input class="form-input" id="edit_name" type="text">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Generic Name</label>
+                    <input class="form-input" id="edit_generic" type="text">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Category *</label>
+                    <input class="form-input" id="edit_category" type="text">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Dosage *</label>
+                    <input class="form-input" id="edit_dosage" type="text">
+                </div>
+                <div class="form-group full">
+                    <label class="form-label">Uses *</label>
+                    <textarea class="form-textarea" id="edit_uses"></textarea>
+                </div>
+                <div class="form-group full">
+                    <label class="form-label">Side Effects *</label>
+                    <textarea class="form-textarea" id="edit_side_effects"></textarea>
+                </div>
+                <div class="form-group full">
+                    <label class="form-label">Warnings</label>
+                    <textarea class="form-textarea" id="edit_warnings" style="min-height:60px;"></textarea>
+                </div>
+            </div>
+            <div class="form-footer">
+                <button class="btn btn-ghost" onclick="closeModal('editModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="submitEdit()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ DELETE CONFIRM MODAL ═══ -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal del-modal" style="max-width:400px;">
+        <div class="modal-body">
+            <div class="del-icon">🗑</div>
+            <div class="del-title">Delete Medicine?</div>
+            <div class="del-sub" id="delModalSub">This will permanently remove this entry from the database.</div>
+            <input type="hidden" id="del_id">
+            <div style="display:flex;gap:10px;justify-content:center;">
+                <button class="btn btn-ghost" onclick="closeModal('deleteModal')">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ TOAST ═══ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ═══════════════════════════════════
+// STATE
+// ═══════════════════════════════════
+let allMedicines = [];
+let filteredMedicines = [];
+let currentPage = 1;
+const PER_PAGE = 10;
+
+const CATEGORY_COLORS = {
+    'painkiller':       'badge-cyan',
+    'antibiotic':       'badge-green',
+    'antacid':          'badge-amber',
+    'antihistamine':    'badge-purple',
+    'diabetic':         'badge-red',
+    'cholesterol':      'badge-cyan',
+    'anti-inflammatory':'badge-green',
+};
+
+function getCatBadge(cat) {
+    const key = (cat || '').toLowerCase();
+    const cls = CATEGORY_COLORS[key] || 'badge-cyan';
+    return `<span class="badge ${cls}">${cat || '—'}</span>`;
+}
+
+// ═══════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════
+function showPage(id, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    if (el) el.classList.add('active');
+    if (id === 'medicines') renderTable();
+}
+
+// ═══════════════════════════════════
+// LOAD DATA
+// ═══════════════════════════════════
+async function loadAll() {
+    try {
+        const res = await fetch('/api/medicines/');
+        const data = await res.json();
+        allMedicines = data.medicines || [];
+        filteredMedicines = [...allMedicines];
+        updateDashboard();
+        updateMedBadge();
+        populateCatFilter();
+        renderTable();
+    } catch (e) {
+        toast('Failed to load medicines. Is the server running?', 'error');
+    }
+}
+
+function updateMedBadge() {
+    document.getElementById('medCountBadge').textContent = allMedicines.length;
+}
+
+// ═══════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════
+function updateDashboard() {
+    const total = allMedicines.length;
+    const cats  = [...new Set(allMedicines.map(m => m.category))].length;
+    const warns = allMedicines.filter(m => m.warnings && m.warnings.trim()).length;
+    const gens  = allMedicines.filter(m => m.generic_name && m.generic_name.trim()).length;
+
+    document.getElementById('statTotal').textContent    = total;
+    document.getElementById('statCats').textContent     = cats;
+    document.getElementById('statWarnings').textContent = warns;
+    document.getElementById('statGenerics').textContent = gens;
+
+    // Category breakdown
+    const catCounts = {};
+    allMedicines.forEach(m => { catCounts[m.category] = (catCounts[m.category] || 0) + 1; });
+    const sorted = Object.entries(catCounts).sort((a,b) => b[1]-a[1]);
+    const max = sorted[0]?.[1] || 1;
+
+    document.getElementById('catBreakdown').innerHTML = sorted.map(([cat, count]) => `
+        <div class="cat-row">
+            <div class="cat-name">${cat}</div>
+            <div class="cat-bar-wrap">
+                <div class="cat-bar" style="width:${(count/max*100)}%"></div>
+            </div>
+            <div class="cat-count">${count}</div>
+        </div>
+    `).join('') || '<div style="color:var(--t3);font-size:.75rem;">No data</div>';
+
+    // Recent 5
+    const recent = [...allMedicines].slice(-5).reverse();
+    const colors = ['var(--cyan)','var(--green)','var(--amber)','var(--purple)','var(--red)'];
+    document.getElementById('recentList').innerHTML = recent.map((m, i) => `
+        <div class="recent-item" onclick="openEditModal(${m.id || i})">
+            <div class="recent-dot" style="background:${colors[i%colors.length]};box-shadow:0 0 6px ${colors[i%colors.length]}"></div>
+            <div class="recent-name">${m.name}</div>
+            <div class="recent-cat">${m.category}</div>
+        </div>
+    `).join('') || '<div style="color:var(--t3);font-size:.75rem;">No data</div>';
+}
+
+// ═══════════════════════════════════
+// TABLE
+// ═══════════════════════════════════
+function populateCatFilter() {
+    const cats = [...new Set(allMedicines.map(m => m.category))].sort();
+    const sel = document.getElementById('catFilter');
+    sel.innerHTML = '<option value="">All Categories</option>' +
+        cats.map(c => `<option value="${c}">${c}</option>`).join('');
+}
+
+function filterTable() {
+    const q   = document.getElementById('searchInput').value.toLowerCase();
+    const cat = document.getElementById('catFilter').value;
+    filteredMedicines = allMedicines.filter(m => {
+        const match = !q || m.name.toLowerCase().includes(q)
+                         || (m.generic_name||'').toLowerCase().includes(q)
+                         || (m.category||'').toLowerCase().includes(q);
+        const catMatch = !cat || m.category === cat;
+        return match && catMatch;
+    });
+    currentPage = 1;
+    renderTable();
+}
+
+function renderTable() {
+    const tbody = document.getElementById('medicinesTable');
+    const total = filteredMedicines.length;
+    const pages = Math.ceil(total / PER_PAGE) || 1;
+    if (currentPage > pages) currentPage = pages;
+
+    const start = (currentPage - 1) * PER_PAGE;
+    const slice = filteredMedicines.slice(start, start + PER_PAGE);
+
+    document.getElementById('pageInfo').textContent =
+        `Showing ${start+1}–${Math.min(start+PER_PAGE, total)} of ${total} records`;
+
+    if (!slice.length) {
+        tbody.innerHTML = `<tr><td colspan="7">
+            <div class="empty-table">
+                <div class="empty-table-icon">💊</div>
+                <div class="empty-table-txt">NO RECORDS FOUND</div>
+            </div>
+        </td></tr>`;
+    } else {
+        tbody.innerHTML = slice.map((m, i) => `
+            <tr>
+                <td class="td-mono">${start + i + 1}</td>
+                <td class="td-name">${m.name}</td>
+                <td class="td-mono">${m.generic_name || '—'}</td>
+                <td>${getCatBadge(m.category)}</td>
+                <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m.dosage}</td>
+                <td>${m.warnings ? '<span class="badge badge-red">⚠ YES</span>' : '<span style="color:var(--t3);font-size:.75rem;">—</span>'}</td>
+                <td>
+                    <div class="actions-cell">
+                        <button class="btn btn-ghost btn-sm" onclick="openEditModal(${m.id})">✏ Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="openDeleteModal(${m.id}, '${m.name.replace(/'/g,"\\'")}')">🗑</button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // Pagination buttons
+    const pb = document.getElementById('pageBtns');
+    pb.innerHTML = '';
+    for (let p = 1; p <= pages; p++) {
+        const btn = document.createElement('button');
+        btn.className = 'page-btn' + (p === currentPage ? ' active' : '');
+        btn.textContent = p;
+        btn.onclick = () => { currentPage = p; renderTable(); };
+        pb.appendChild(btn);
+    }
+}
+
+// ═══════════════════════════════════
+// MODALS
+// ═══════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function openAddModal() {
+    showPage('add', document.querySelector('[onclick*="showPage(\'add\'"]'));
+}
+
+function openEditModal(id) {
+    const med = allMedicines.find(m => m.id === id);
+    if (!med) { toast('Medicine not found', 'error'); return; }
+    document.getElementById('edit_id').value          = med.id;
+    document.getElementById('edit_name').value        = med.name;
+    document.getElementById('edit_generic').value     = med.generic_name || '';
+    document.getElementById('edit_category').value    = med.category;
+    document.getElementById('edit_dosage').value      = med.dosage;
+    document.getElementById('edit_uses').value        = med.uses;
+    document.getElementById('edit_side_effects').value= med.side_effects;
+    document.getElementById('edit_warnings').value    = med.warnings || '';
+    openModal('editModal');
+}
+
+function openDeleteModal(id, name) {
+    document.getElementById('del_id').value    = id;
+    document.getElementById('delModalSub').textContent =
+        `"${name}" will be permanently removed from the database.`;
+    openModal('deleteModal');
+}
+
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(ov => {
+    ov.addEventListener('click', e => { if (e.target === ov) closeModal(ov.id); });
+});
+
+// ═══════════════════════════════════
+// CRUD OPERATIONS
+// ═══════════════════════════════════
+async function submitAdd() {
+    const name    = document.getElementById('add_name').value.trim();
+    const generic = document.getElementById('add_generic').value.trim();
+    const cat     = document.getElementById('add_category').value.trim();
+    const dosage  = document.getElementById('add_dosage').value.trim();
+    const uses    = document.getElementById('add_uses').value.trim();
+    const sfx     = document.getElementById('add_side_effects').value.trim();
+    const warn    = document.getElementById('add_warnings').value.trim();
+
+    if (!name || !cat || !dosage || !uses || !sfx) {
+        toast('Please fill all required fields (*)', 'error'); return;
+    }
+
+    try {
+        const res = await fetch('/api/medicines/add/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, generic_name: generic, category: cat,
+                                   dosage, uses, side_effects: sfx, warnings: warn })
+        });
+        const data = await res.json();
+        if (data.success) {
+            toast(`"${name}" added successfully!`, 'success');
+            clearAddForm();
+            loadAll();
+        } else {
+            toast(data.message || 'Failed to add', 'error');
+        }
+    } catch (e) {
+        toast('Network error', 'error');
+    }
+}
+
+async function submitEdit() {
+    const id      = document.getElementById('edit_id').value;
+    const name    = document.getElementById('edit_name').value.trim();
+    const generic = document.getElementById('edit_generic').value.trim();
+    const cat     = document.getElementById('edit_category').value.trim();
+    const dosage  = document.getElementById('edit_dosage').value.trim();
+    const uses    = document.getElementById('edit_uses').value.trim();
+    const sfx     = document.getElementById('edit_side_effects').value.trim();
+    const warn    = document.getElementById('edit_warnings').value.trim();
+
+    if (!name || !cat || !dosage || !uses || !sfx) {
+        toast('Please fill all required fields (*)', 'error'); return;
+    }
+
+    try {
+        const res = await fetch(`/api/medicines/edit/${id}/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, generic_name: generic, category: cat,
+                                   dosage, uses, side_effects: sfx, warnings: warn })
+        });
+        const data = await res.json();
+        if (data.success) {
+            toast(`"${name}" updated!`, 'success');
+            closeModal('editModal');
+            loadAll();
+        } else {
+            toast(data.message || 'Update failed', 'error');
+        }
+    } catch (e) {
+        toast('Network error', 'error');
+    }
+}
+
+async function confirmDelete() {
+    const id = document.getElementById('del_id').value;
+    try {
+        const res = await fetch(`/api/medicines/delete/${id}/`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            toast('Medicine deleted.', 'info');
+            closeModal('deleteModal');
+            loadAll();
+        } else {
+            toast(data.message || 'Delete failed', 'error');
+        }
+    } catch (e) {
+        toast('Network error', 'error');
+    }
+}
+
+function clearAddForm() {
+    ['add_name','add_generic','add_category','add_dosage',
+     'add_uses','add_side_effects','add_warnings'].forEach(id => {
+        document.getElementById(id).value = '';
+    });
+}
+
+// ═══════════════════════════════════
+// TOAST
+// ═══════════════════════════════════
+function toast(msg, type = 'info') {
+    const icons = { success: '✓', error: '✕', info: 'ℹ' };
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<span>${icons[type]}</span><span>${msg}</span>`;
+    document.getElementById('toastContainer').appendChild(el);
+    setTimeout(() => el.remove(), 3500);
+}
+
+// ═══════════════════════════════════
+// INIT
+// ═══════════════════════════════════
+loadAll();
+</script>
+</body>
+</html>
