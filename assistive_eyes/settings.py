@@ -62,8 +62,12 @@ WSGI_APPLICATION = 'assistive_eyes.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'assistive_eyes',
+        'USER': 'root',
+        'PASSWORD': 'attackontitan',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 

@@ -11,4 +11,6 @@ urlpatterns = [
     path('medicines/add/', views.add_medicine, name='add_medicine'),
     path('medicines/edit/<int:id>/', views.edit_medicine, name='edit_medicine'),
     path('medicines/delete/<int:id>/', views.delete_medicine, name='delete_medicine'),
+    path('history/save/', views.save_scan_history, name='save_scan_history'),
+    path('history/',      views.get_scan_history,  name='get_scan_history'),
 ]

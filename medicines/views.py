@@ -8,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import Medicine
 from .ocr_engine import extract_medicine_name
 from django.shortcuts import render
+from .models import Medicine, ScanHistory
 
 # ── Page Views ──
 def standard_view(request):
@@ -33,7 +34,10 @@ def scan_medicine(request):
             image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
 
             medicine_name = extract_medicine_name(image)
-
+            medicine_name = extract_medicine_name(image)
+            print("=== OCR DEBUG ===")
+            print("OCR Result:", medicine_name)
+            print("=================")
             if not medicine_name:
                 return JsonResponse({
                     'success': False,
@@ -127,3 +131,38 @@ def delete_medicine(request, id):
 
 def admin_login(request):
     return render(request, 'medicines/login.html')
+
+
+@csrf_exempt
+def save_scan_history(request):
+
+    if request.method == 'POST':
+
+        data = json.loads(request.body)
+
+        ScanHistory.objects.create(
+            medicine_name = data.get('medicine_name', ''),
+            generic_name  = data.get('generic_name', ''),
+            category      = data.get('category', ''),
+            success       = data.get('success', False),
+            message       = data.get('message', '')
+        )
+
+        return JsonResponse({'saved': True})
+
+    return JsonResponse({'saved': False})
+
+
+def get_scan_history(request):
+
+    history = ScanHistory.objects.all().order_by('-scanned_at').values(
+        'id',
+        'medicine_name',
+        'generic_name',
+        'category',
+        'success',
+        'message',
+        'scanned_at'
+    )
+
+    return JsonResponse({'history': list(history)})

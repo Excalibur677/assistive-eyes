@@ -77,81 +77,85 @@ def crop_medicine_box(image):
 
 
 def extract_text_from_image(image):
-    """
-    Runs EasyOCR on the cleaned image.
-    Returns all detected text as one string.
-    """
-    results = reader.readtext(image, detail=0)  # detail=0 = text only
-    full_text = ' '.join(results)
-    print(f"[OCR RAW TEXT]: {full_text}")  # For debugging
-    return full_text
+    results = reader.readtext(image)
+    text = ' '.join([res[1] for res in results])
+    print("=== RAW OCR TEXT ===")
+    print(text)
+    print("====================")
+    return text
 
 
+def fuzzy_match_medicine(text):
 
-def fuzzy_match_medicine(raw_text):
-    """
-    Takes raw OCR text and finds the closest
-    matching medicine name in the database.
-    """
+    words      = text.split()
+    candidates = []
 
-    # Get all medicine names from database
-    all_medicines = Medicine.objects.values_list('name', flat=True)
-    medicine_names = list(all_medicines)
+    for i in range(len(words)):
+        for j in range(i+1, min(i+5, len(words)+1)):
+            candidates.append(' '.join(words[i:j]))
 
-    if not medicine_names:
-        return None
+    candidates.append(text)
 
-    # Split raw OCR text into individual words
-    words = raw_text.split()
-
+    medicines  = Medicine.objects.all()
     best_match = None
     best_score = 0
 
-    # Try matching each word and combination against database
-    for i in range(len(words)):
-        for j in range(i+1, min(i+4, len(words)+1)):
-            candidate = ' '.join(words[i:j])
+    for medicine in medicines:
+        for candidate in candidates:
 
-            # Fuzzy match this candidate against all medicine names
-            match, score = process.extractOne(
-                candidate,
-                medicine_names,
-                scorer=fuzz.token_sort_ratio
+            score1 = fuzz.token_sort_ratio(
+                candidate.lower(),
+                medicine.name.lower()
             )
 
-            print(f"[FUZZY] '{candidate}' → '{match}' (score: {score})")
+            score2 = fuzz.token_sort_ratio(
+                candidate.lower(),
+                medicine.generic_name.lower()
+            ) if medicine.generic_name else 0
+
+            score = max(score1, score2)
 
             if score > best_score:
                 best_score = score
-                best_match = match
+                best_match = medicine.name
 
-    # Only accept match if confidence is above 70%
-    if best_score >= 70:
-        print(f"[MATCH FOUND]: {best_match} with score {best_score}")
+    print("=== BEST MATCH ===")
+    print("Match:", best_match)
+    print("Score:", best_score)
+    print("==================")
+
+    if best_score >= 75:
         return best_match
-    else:
-        print(f"[NO MATCH]: Best was {best_match} at {best_score}%")
-        return None
 
-
+    return None 
 def extract_medicine_name(image):
-    """
-    Full pipeline:
-    Raw image → Cleaned → Cropped → OCR → Fuzzy Match → Medicine Name
-    """
-    # Step 1: Preprocess
-    cleaned = preprocess_image(image)
 
-    # Step 2: Crop
-    cropped = crop_medicine_box(cleaned)
+    # Try 1 — read directly without any preprocessing
+    text = extract_text_from_image(image)
+    print("Try 1 raw text:", text)
 
-    # Step 3: Extract text
-    raw_text = extract_text_from_image(cropped)
+    if text.strip():
+        result = fuzzy_match_medicine(text)
+        if result:
+            return result
 
-    if not raw_text.strip():
-        return None
+    # Try 2 — greyscale only
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    text = extract_text_from_image(gray)
+    print("Try 2 greyscale text:", text)
 
-    # Step 4: Fuzzy match
-    medicine_name = fuzzy_match_medicine(raw_text)
+    if text.strip():
+        result = fuzzy_match_medicine(text)
+        if result:
+            return result
 
-    return medicine_name
+    # Try 3 — full preprocessing pipeline
+    preprocessed = preprocess_image(image)
+    cropped      = crop_medicine_box(preprocessed)
+    text         = extract_text_from_image(cropped)
+    print("Try 3 preprocessed text:", text)
+
+    if text.strip():
+        return fuzzy_match_medicine(text)
+
+    return None

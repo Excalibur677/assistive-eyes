@@ -1140,52 +1140,80 @@
       document.getElementById('hbadge').textContent = getHist().length;
     }
 
-    function renderHist() {
+    async function renderHist() {
 
-      const h  = getHist();
-      const el = document.getElementById('histContent');
+  const el = document.getElementById('histContent');
 
-      if (!h.length) {
-        el.innerHTML = `
-          <div class="hempty">
-            <div class="hempty-ico">🔬</div>
-            <p>No scans yet.<br>Go to the scanner and scan a medicine.</p>
-          </div>`;
-        return;
-      }
+  el.innerHTML = '<p style="color:#bbb;text-align:center;padding:30px;">Loading...</p>';
 
-      const ok = h.filter(s => s.success).length;
+  try {
 
+    const res  = await fetch('/api/history/');
+    const data = await res.json();
+    const h    = data.history;
+
+    if (!h.length) {
       el.innerHTML = `
-        <div class="hbar">
-          <div class="hcount">
-            ${h.length} scan${h.length !== 1 ? 's' : ''} —
-            <span style="color:#2e7d32;font-weight:600;">${ok} found</span> ·
-            <span style="color:#c62828;font-weight:600;">${h.length - ok} failed</span>
-          </div>
-        </div>
-        <div>
-          ${h.map(s => `
-            <div class="hitem ${s.success ? '' : 'fail'}">
-              <div class="hico ${s.success ? 'ok' : 'fail'}">${s.success ? '✅' : '❌'}</div>
-              <div class="hinfo">
-                <div class="hname">${s.name}</div>
-                <div class="hdetail">${s.success ? (s.generic || 'No generic name') : s.message}</div>
-                ${s.success ? `<span class="htag">${s.category}</span>` : ''}
-              </div>
-              <div class="htime">${s.time}<br><span style="font-size:.68rem;">${s.date}</span></div>
-            </div>
-          `).join('')}
+        <div class="hempty">
+          <div class="hempty-ico">🔬</div>
+          <p>No scans yet.<br>Go to the scanner and scan a medicine.</p>
         </div>`;
-
+      return;
     }
 
-    function clearHistory() {
-      sessionStorage.removeItem('scanHistory');
-      renderHist();
-      updateHBadge();
-      toast('Scan history cleared', 'i');
-    }
+    const ok = h.filter(s => s.success).length;
+
+    el.innerHTML = `
+      <div class="hbar">
+        <div class="hcount">
+          ${h.length} total scan${h.length !== 1 ? 's' : ''} —
+          <span style="color:#2e7d32;font-weight:600;">${ok} found</span> ·
+          <span style="color:#c62828;font-weight:600;">${h.length - ok} failed</span>
+        </div>
+      </div>
+      <div>
+        ${h.map(s => `
+          <div class="hitem ${s.success ? '' : 'fail'}">
+            <div class="hico ${s.success ? 'ok' : 'fail'}">${s.success ? '✅' : '❌'}</div>
+            <div class="hinfo">
+              <div class="hname">${s.medicine_name}</div>
+              <div class="hdetail">${s.success ? (s.generic_name || 'No generic name') : s.message}</div>
+              ${s.success ? `<span class="htag">${s.category}</span>` : ''}
+            </div>
+            <div class="htime">
+              ${new Date(s.scanned_at).toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'})}
+              <br>
+              <span style="font-size:.68rem;">
+                ${new Date(s.scanned_at).toLocaleDateString('en-IN')}
+              </span>
+            </div>
+          </div>
+        `).join('')}
+      </div>`;
+
+    document.getElementById('hbadge').textContent = h.length;
+
+  } catch(e) {
+    el.innerHTML = '<p style="color:#e53935;text-align:center;padding:30px;">Failed to load history</p>';
+  }
+
+}
+
+    async function clearHistory() {
+
+  // clear from MySQL
+  try {
+    await fetch('/api/history/save/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clear: true })
+    });
+  } catch(e) {}
+
+  renderHist();
+  toast('Scan history cleared', 'i');
+
+}
 
     function goTab(id, el) {
 

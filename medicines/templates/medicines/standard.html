@@ -540,26 +540,21 @@ function fillResult(m) {
 
 }
 
-function saveScanHistory(result) {
+async function saveScanHistory(result) {
 
   try {
 
-    const existing = JSON.parse(sessionStorage.getItem('scanHistory') || '[]');
-
-    existing.unshift({
-      id:       Date.now(),
-      time:     new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
-      date:     new Date().toLocaleDateString('en-IN'),
-      success:  result.success,
-      name:     result.success ? result.medicine.name : 'Not Found',
-      generic:  result.success ? (result.medicine.generic_name || '') : '',
-      category: result.success ? result.medicine.category : '',
-      message:  result.success ? '' : result.message
+    await fetch('/api/history/save/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        medicine_name: result.success ? result.medicine.name     : 'Not Found',
+        generic_name:  result.success ? result.medicine.generic_name : '',
+        category:      result.success ? result.medicine.category  : '',
+        success:       result.success,
+        message:       result.success ? '' : result.message
+      })
     });
-
-    if (existing.length > 50) existing.pop();
-
-    sessionStorage.setItem('scanHistory', JSON.stringify(existing));
 
   } catch(e) {
     console.log('History save failed:', e);
