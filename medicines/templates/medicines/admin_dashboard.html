@@ -1,1478 +1,1475 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assistive Eyes — Admin Panel</title>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg:        #060910;
-            --bg-panel:  #0b0f1a;
-            --bg-card:   #0f1520;
-            --bg-elev:   #141c2e;
-            --bg-hover:  #1a2338;
-            --border:    rgba(0,210,255,0.10);
-            --border-md: rgba(0,210,255,0.22);
-            --border-hi: rgba(0,210,255,0.45);
-            --cyan:      #00d2ff;
-            --cyan-dim:  rgba(0,210,255,0.55);
-            --cyan-glow: rgba(0,210,255,0.12);
-            --green:     #00e5a0;
-            --green-gl:  rgba(0,229,160,0.12);
-            --amber:     #ffb830;
-            --amber-gl:  rgba(255,184,48,0.12);
-            --red:       #ff4560;
-            --red-gl:    rgba(255,69,96,0.12);
-            --purple:    #a78bfa;
-            --t1:        #e8edf5;
-            --t2:        #7a90b8;
-            --t3:        #3a4a6b;
-            --grid:      rgba(0,210,255,0.03);
-        }
-
-        * { margin:0; padding:0; box-sizing:border-box; }
-
-        html, body {
-            height: 100%;
-            font-family: 'DM Sans', sans-serif;
-            background: var(--bg);
-            color: var(--t1);
-            overflow: hidden;
-        }
-
-        /* Grid bg */
-        body::before {
-            content:'';
-            position:fixed; inset:0;
-            background-image:
-                linear-gradient(var(--grid) 1px, transparent 1px),
-                linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-            background-size: 40px 40px;
-            pointer-events:none; z-index:0;
-        }
-
-    
-        .shell {
-            position: relative;
-            z-index: 1;
-            display: grid;
-            grid-template-columns: 220px 1fr;
-            grid-template-rows: 58px 1fr;
-            height: 100vh;
-        }
-
-        
-        .topbar {
-            grid-column: 1 / -1;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 28px;
-            border-bottom: 1px solid var(--border);
-            background: rgba(6,9,16,0.9);
-            backdrop-filter: blur(20px);
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .logo-icon {
-            width: 32px; height: 32px;
-            border: 1.5px solid var(--cyan);
-            border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 15px;
-            box-shadow: 0 0 14px var(--cyan-glow);
-        }
-
-        .logo-name {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.05rem;
-            font-weight: 700;
-        }
-        .logo-name span { color: var(--cyan); }
-
-        .logo-tag {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.58rem;
-            letter-spacing: 2.5px;
-            color: var(--t3);
-            text-transform: uppercase;
-        }
-
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .system-status {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            padding: 5px 14px;
-            border: 1px solid var(--border);
-            border-radius: 50px;
-            font-family: 'DM Mono', monospace;
-            font-size: 0.62rem;
-            letter-spacing: 1.5px;
-            color: var(--t2);
-        }
-
-        .dot-pulse {
-            width: 5px; height: 5px;
-            border-radius: 50%;
-            background: var(--green);
-            box-shadow: 0 0 6px var(--green);
-            animation: blink 2s infinite;
-        }
-
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
-
-        .topbar-avatar {
-            width: 30px; height: 30px;
-            border-radius: 8px;
-            background: var(--bg-elev);
-            border: 1px solid var(--border-md);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-      
-        .sidebar {
-            border-right: 1px solid var(--border);
-            background: var(--bg-panel);
-            padding: 20px 0;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            overflow-y: auto;
-        }
-
-        .sidebar-section {
-            padding: 0 14px;
-            margin-bottom: 6px;
-        }
-
-        .sidebar-label {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.55rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            color: var(--t3);
-            padding: 0 10px;
-            margin-bottom: 4px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 9px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.83rem;
-            color: var(--t2);
-            transition: all 0.15s;
-            border: 1px solid transparent;
-            user-select: none;
-        }
-
-        .nav-item:hover {
-            background: var(--bg-hover);
-            color: var(--t1);
-        }
-
-        .nav-item.active {
-            background: var(--cyan-glow);
-            border-color: var(--border-md);
-            color: var(--cyan);
-        }
-
-        .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
-
-        .nav-badge {
-            margin-left: auto;
-            font-family: 'DM Mono', monospace;
-            font-size: 0.6rem;
-            background: var(--cyan);
-            color: var(--bg);
-            padding: 1px 7px;
-            border-radius: 50px;
-            font-weight: 600;
-            min-width: 20px;
-            text-align: center;
-        }
-
-        .sidebar-divider {
-            height: 1px;
-            background: var(--border);
-            margin: 8px 14px;
-        }
-
-        .sidebar-bottom {
-            margin-top: auto;
-            padding: 14px;
-        }
-
-        .back-link {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 9px 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            color: var(--t2);
-            font-size: 0.8rem;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.15s;
-        }
-
-        .back-link:hover { color: var(--t1); border-color: var(--border-md); }
-
-        
-        .content {
-            overflow-y: auto;
-            background: var(--bg);
-        }
-
-        /* Pages */
-        .page { display: none; padding: 28px 32px; animation: fade-in 0.25s ease; }
-        .page.active { display: block; }
-
-        @keyframes fade-in {
-            from { opacity: 0; transform: translateY(6px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Page header */
-        .page-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            margin-bottom: 28px;
-        }
-
-        .page-title {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 800;
-            margin-bottom: 4px;
-        }
-
-        .page-sub {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.62rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--t3);
-        }
-
-        .stat-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 14px;
-            margin-bottom: 28px;
-        }
-
-        .stat-card {
-            padding: 18px 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            background: var(--bg-card);
-            position: relative;
-            overflow: hidden;
-            transition: border-color 0.2s;
-        }
-
-        .stat-card:hover { border-color: var(--border-md); }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 2px;
-        }
-
-        .stat-card.cyan::before  { background: var(--cyan); }
-        .stat-card.green::before { background: var(--green); }
-        .stat-card.amber::before { background: var(--amber); }
-        .stat-card.purple::before{ background: var(--purple); }
-
-        .stat-icon {
-            font-size: 1.3rem;
-            margin-bottom: 10px;
-            opacity: 0.8;
-        }
-
-        .stat-val {
-            font-family: 'Syne', sans-serif;
-            font-size: 2rem;
-            font-weight: 800;
-            line-height: 1;
-            margin-bottom: 4px;
-        }
-
-        .stat-card.cyan  .stat-val { color: var(--cyan); }
-        .stat-card.green .stat-val { color: var(--green); }
-        .stat-card.amber .stat-val { color: var(--amber); }
-        .stat-card.purple .stat-val{ color: var(--purple); }
-
-        .stat-label {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.62rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--t3);
-        }
-
-      
-        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
-
-        .card {
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            background: var(--bg-card);
-            overflow: hidden;
-        }
-
-        .card-head {
-            padding: 14px 18px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .card-title {
-            font-family: 'Syne', sans-serif;
-            font-size: 0.88rem;
-            font-weight: 700;
-        }
-
-        .card-body { padding: 16px 18px; }
-
-        /* Category bars */
-        .cat-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .cat-row:last-child { margin-bottom: 0; }
-
-        .cat-name {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.68rem;
-            letter-spacing: 1px;
-            color: var(--t2);
-            width: 110px;
-            flex-shrink: 0;
-        }
-
-        .cat-bar-wrap {
-            flex: 1;
-            height: 6px;
-            background: var(--bg-elev);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-
-        .cat-bar {
-            height: 100%;
-            border-radius: 3px;
-            background: var(--cyan);
-            transition: width 0.8s cubic-bezier(.4,0,.2,1);
-        }
-
-        .cat-count {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.68rem;
-            color: var(--t3);
-            width: 18px;
-            text-align: right;
-        }
-
-        /* Recent list */
-        .recent-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border);
-            cursor: pointer;
-            transition: background 0.15s;
-            border-radius: 6px;
-            padding: 8px 10px;
-            margin: 0 -10px;
-        }
-        .recent-item:last-child { border-bottom: none; }
-        .recent-item:hover { background: var(--bg-hover); }
-
-        .recent-dot {
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        .recent-name {
-            font-size: 0.85rem;
-            color: var(--t1);
-            flex: 1;
-        }
-
-        .recent-cat {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.6rem;
-            letter-spacing: 1px;
-            color: var(--t3);
-        }
-
-     
-        .toolbar {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 18px;
-        }
-
-        .search-box {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex: 1;
-            padding: 10px 14px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            background: var(--bg-card);
-            transition: border-color 0.2s;
-        }
-
-        .search-box:focus-within { border-color: var(--border-md); }
-
-        .search-box input {
-            flex: 1;
-            background: none;
-            border: none;
-            outline: none;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.85rem;
-            color: var(--t1);
-        }
-
-        .search-box input::placeholder { color: var(--t3); }
-
-        .filter-select {
-            padding: 10px 14px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            background: var(--bg-card);
-            color: var(--t2);
-            font-family: 'DM Mono', monospace;
-            font-size: 0.72rem;
-            outline: none;
-            cursor: pointer;
-            letter-spacing: 1px;
-        }
-
-        .btn {
-            padding: 10px 18px;
-            border-radius: 10px;
-            border: none;
-            cursor: pointer;
-            font-family: 'Syne', sans-serif;
-            font-size: 0.82rem;
-            font-weight: 700;
-            transition: all 0.15s;
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            white-space: nowrap;
-        }
-
-        .btn-primary {
-            background: var(--cyan);
-            color: var(--bg);
-        }
-        .btn-primary:hover { background: #33daff; box-shadow: 0 0 20px rgba(0,210,255,.3); }
-
-        .btn-ghost {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            color: var(--t2);
-        }
-        .btn-ghost:hover { border-color: var(--border-md); color: var(--t1); }
-
-        .btn-danger {
-            background: var(--red-gl);
-            border: 1px solid rgba(255,69,96,0.25);
-            color: var(--red);
-        }
-        .btn-danger:hover { background: rgba(255,69,96,0.2); }
-
-        .btn-success {
-            background: var(--green-gl);
-            border: 1px solid rgba(0,229,160,0.25);
-            color: var(--green);
-        }
-        .btn-success:hover { background: rgba(0,229,160,0.2); }
-
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 0.72rem;
-            border-radius: 7px;
-        }
-
-    
-        .table-wrap {
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            overflow: hidden;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead {
-            background: var(--bg-elev);
-        }
-
-        th {
-            padding: 11px 16px;
-            text-align: left;
-            font-family: 'DM Mono', monospace;
-            font-size: 0.6rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--t3);
-            border-bottom: 1px solid var(--border);
-            white-space: nowrap;
-        }
-
-        tbody tr {
-            border-bottom: 1px solid var(--border);
-            transition: background 0.12s;
-            cursor: pointer;
-        }
-
-        tbody tr:last-child { border-bottom: none; }
-        tbody tr:hover { background: var(--bg-hover); }
-        tbody tr.selected { background: var(--cyan-glow); }
-
-        td {
-            padding: 12px 16px;
-            font-size: 0.83rem;
-            color: var(--t2);
-            vertical-align: middle;
-        }
-
-        td.td-name {
-            font-weight: 500;
-            color: var(--t1);
-        }
-
-        td.td-mono {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.72rem;
-            color: var(--t3);
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 50px;
-            font-family: 'DM Mono', monospace;
-            font-size: 0.58rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            white-space: nowrap;
-        }
-
-        .badge-cyan   { background: var(--cyan-glow);  border: 1px solid rgba(0,210,255,.2);  color: var(--cyan); }
-        .badge-green  { background: var(--green-gl);   border: 1px solid rgba(0,229,160,.2);  color: var(--green); }
-        .badge-amber  { background: var(--amber-gl);   border: 1px solid rgba(255,184,48,.2); color: var(--amber); }
-        .badge-purple { background: rgba(167,139,250,.1); border:1px solid rgba(167,139,250,.2); color: var(--purple); }
-        .badge-red    { background: var(--red-gl);     border: 1px solid rgba(255,69,96,.2);  color: var(--red); }
-
-        .actions-cell {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-        }
-
-        /* Pagination */
-        .pagination {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 0 0;
-        }
-
-        .page-info {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.65rem;
-            letter-spacing: 1px;
-            color: var(--t3);
-        }
-
-        .page-btns {
-            display: flex;
-            gap: 6px;
-        }
-
-        .page-btn {
-            width: 30px; height: 30px;
-            border-radius: 7px;
-            border: 1px solid var(--border);
-            background: var(--bg-card);
-            color: var(--t2);
-            cursor: pointer;
-            font-size: 0.75rem;
-            display: flex; align-items: center; justify-content: center;
-            transition: all 0.15s;
-        }
-
-        .page-btn:hover { border-color: var(--border-md); color: var(--t1); }
-        .page-btn.active { background: var(--cyan); border-color: var(--cyan); color: var(--bg); }
-
-        /* ═══════════════════════════════════
-           MODAL
-        ═══════════════════════════════════ */
-        .modal-overlay {
-            position: fixed; inset: 0;
-            background: rgba(6,9,16,0.85);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-overlay.open { display: flex; }
-
-        .modal {
-            background: var(--bg-panel);
-            border: 1px solid var(--border-md);
-            border-radius: 16px;
-            width: 100%;
-            max-width: 620px;
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: modal-in 0.25s cubic-bezier(0.32,0.72,0,1);
-            position: relative;
-        }
-
-        @keyframes modal-in {
-            from { opacity: 0; transform: scale(0.96) translateY(10px); }
-            to   { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        .modal-head {
-            padding: 22px 26px 18px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky; top: 0;
-            background: var(--bg-panel);
-            z-index: 2;
-        }
-
-        .modal-title {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 700;
-        }
-
-        .modal-close {
-            width: 30px; height: 30px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: none;
-            color: var(--t2);
-            cursor: pointer;
-            font-size: 1rem;
-            display: flex; align-items: center; justify-content: center;
-            transition: all 0.15s;
-        }
-        .modal-close:hover { color: var(--t1); border-color: var(--border-md); }
-
-        .modal-body { padding: 22px 26px; }
-
-        /* Form */
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-
-        .form-group { display: flex; flex-direction: column; gap: 6px; }
-        .form-group.full { grid-column: 1 / -1; }
-
-        .form-label {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.62rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--t3);
-        }
-
-        .form-input, .form-textarea, .form-select {
-            padding: 10px 14px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--bg-card);
-            color: var(--t1);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.85rem;
-            outline: none;
-            transition: border-color 0.15s;
-            width: 100%;
-        }
-
-        .form-input:focus, .form-textarea:focus, .form-select:focus {
-            border-color: var(--border-hi);
-        }
-
-        .form-textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
-
-        .form-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            padding-top: 16px;
-            border-top: 1px solid var(--border);
-            margin-top: 8px;
-        }
-
-        /* ── DELETE CONFIRM ── */
-        .del-modal .modal-body {
-            text-align: center;
-            padding: 32px 26px;
-        }
-
-        .del-icon { font-size: 2.5rem; margin-bottom: 14px; }
-
-        .del-title {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .del-sub { font-size: 0.85rem; color: var(--t2); margin-bottom: 24px; line-height: 1.6; }
-
-        /* ── TOAST ── */
-        .toast-container {
-            position: fixed;
-            bottom: 24px; right: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            z-index: 2000;
-        }
-
-        .toast {
-            padding: 12px 18px;
-            border-radius: 10px;
-            border: 1px solid;
-            font-size: 0.83rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            animation: toast-in 0.3s ease;
-            min-width: 260px;
-            backdrop-filter: blur(12px);
-        }
-
-        @keyframes toast-in {
-            from { opacity: 0; transform: translateX(20px); }
-            to   { opacity: 1; transform: translateX(0); }
-        }
-
-        .toast.success { background: rgba(0,229,160,.1); border-color: rgba(0,229,160,.3); color: var(--green); }
-        .toast.error   { background: rgba(255,69,96,.1);  border-color: rgba(255,69,96,.3);  color: var(--red); }
-        .toast.info    { background: var(--cyan-glow);    border-color: var(--border-md);    color: var(--cyan); }
-
-        /* Scrollbar */
-        .content::-webkit-scrollbar,
-        .modal::-webkit-scrollbar { width: 4px; }
-        .content::-webkit-scrollbar-track,
-        .modal::-webkit-scrollbar-track { background: transparent; }
-        .content::-webkit-scrollbar-thumb,
-        .modal::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-        /* Empty table state */
-        .empty-table {
-            padding: 48px;
-            text-align: center;
-            color: var(--t3);
-        }
-        .empty-table-icon { font-size: 2rem; margin-bottom: 12px; opacity: 0.5; }
-        .empty-table-txt  { font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:2px; }
-
-        /* Loading */
-        .loading-row td {
-            text-align: center;
-            padding: 40px;
-            color: var(--t3);
-            font-family: 'DM Mono', monospace;
-            font-size: 0.72rem;
-            letter-spacing: 2px;
-        }
-
-        /* Responsive tweaks */
-        @media (max-width: 1100px) {
-            .stat-grid { grid-template-columns: repeat(2,1fr); }
-            .two-col   { grid-template-columns: 1fr; }
-        }
-    </style>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Assistive Eyes - Admin Dashboard</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f0f4f0;
+      color: #222;
+    }
+
+    .topbar {
+      background: #2e7d32;
+      padding: 0 28px;
+      height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .tb-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tb-icon {
+      width: 40px;
+      height: 40px;
+      background: white;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+    }
+
+    .tb-title {
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .tb-sub {
+      color: rgba(255,255,255,0.75);
+      font-size: 0.72rem;
+    }
+
+    .tb-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .online-badge {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(255,255,255,0.15);
+      color: white;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 500;
+    }
+
+    .odot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #69f0ae;
+      animation: blink 2s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: .3; }
+    }
+
+    .back-btn {
+      background: rgba(255,255,255,0.18);
+      color: white;
+      text-decoration: none;
+      padding: 7px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: background .2s;
+    }
+
+    .back-btn:hover {
+      background: rgba(255,255,255,0.28);
+    }
+
+    .tabbar {
+      background: white;
+      border-bottom: 2px solid #e8f5e9;
+      padding: 0 28px;
+      display: flex;
+      gap: 2px;
+      position: sticky;
+      top: 62px;
+      z-index: 99;
+      overflow-x: auto;
+    }
+
+    .tabbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab {
+      padding: 15px 22px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #999;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .tab:hover {
+      color: #2e7d32;
+    }
+
+    .tab.on {
+      color: #2e7d32;
+      border-bottom-color: #2e7d32;
+    }
+
+    .tbadge {
+      background: #e8f5e9;
+      color: #2e7d32;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .content {
+      max-width: 1100px;
+      margin: 28px auto;
+      padding: 0 24px 40px;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.on {
+      display: block;
+      animation: fi .25s ease;
+    }
+
+    @keyframes fi {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .phead {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .ptitle {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #1b5e20;
+    }
+
+    .psub {
+      font-size: 0.85rem;
+      color: #888;
+      margin-top: 3px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 26px;
+    }
+
+    .sc {
+      background: white;
+      border-radius: 14px;
+      padding: 20px 18px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border-left: 5px solid;
+      transition: transform .2s, box-shadow .2s;
+    }
+
+    .sc:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+    }
+
+    .sc.c1 { border-left-color: #2e7d32; }
+    .sc.c2 { border-left-color: #1565c0; }
+    .sc.c3 { border-left-color: #e65100; }
+    .sc.c4 { border-left-color: #6a1b9a; }
+
+    .sc-ico {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      flex-shrink: 0;
+    }
+
+    .sc.c1 .sc-ico { background: #e8f5e9; }
+    .sc.c2 .sc-ico { background: #e3f2fd; }
+    .sc.c3 .sc-ico { background: #fff3e0; }
+    .sc.c4 .sc-ico { background: #f3e5f5; }
+
+    .sc-num {
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 3px;
+    }
+
+    .sc.c1 .sc-num { color: #2e7d32; }
+    .sc.c2 .sc-num { color: #1565c0; }
+    .sc.c3 .sc-num { color: #e65100; }
+    .sc.c4 .sc-num { color: #6a1b9a; }
+
+    .sc-lbl {
+      font-size: 0.82rem;
+      color: #888;
+      font-weight: 500;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .ch {
+      padding: 16px 20px;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .ct {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #222;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cb {
+      padding: 18px 20px;
+    }
+
+    .two {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .crow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 13px;
+    }
+
+    .crow:last-child {
+      margin-bottom: 0;
+    }
+
+    .cname {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #444;
+      width: 120px;
+      flex-shrink: 0;
+    }
+
+    .cbg {
+      flex: 1;
+      height: 10px;
+      background: #f0f0f0;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .cbar {
+      height: 100%;
+      background: linear-gradient(90deg, #66bb6a, #2e7d32);
+      border-radius: 5px;
+      transition: width 1s ease;
+    }
+
+    .ccnt {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #2e7d32;
+      width: 22px;
+      text-align: right;
+    }
+
+    .ritem {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 6px;
+      border-bottom: 1px solid #f5f5f5;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all .15s;
+    }
+
+    .ritem:last-child {
+      border-bottom: none;
+    }
+
+    .ritem:hover {
+      background: #f1f8e9;
+      padding-left: 12px;
+    }
+
+    .rava {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .rname {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #222;
+      flex: 1;
+    }
+
+    .rcat {
+      font-size: 0.75rem;
+      color: #999;
+    }
+
+    .hempty {
+      text-align: center;
+      padding: 52px 20px;
+    }
+
+    .hempty-ico {
+      font-size: 3.5rem;
+      margin-bottom: 14px;
+    }
+
+    .hempty p {
+      font-size: 0.92rem;
+      color: #aaa;
+      line-height: 1.8;
+    }
+
+    .hitem {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px 18px;
+      border-radius: 12px;
+      border: 1.5px solid #e8f5e9;
+      margin-bottom: 12px;
+      background: #fafffe;
+      transition: box-shadow .2s;
+    }
+
+    .hitem:hover {
+      box-shadow: 0 2px 12px rgba(46,125,50,0.1);
+    }
+
+    .hitem:last-child {
+      margin-bottom: 0;
+    }
+
+    .hitem.fail {
+      border-color: #fce4ec;
+      background: #fff9fb;
+    }
+
+    .hico {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .hico.ok   { background: #e8f5e9; }
+    .hico.fail { background: #fce4ec; }
+
+    .hinfo {
+      flex: 1;
+    }
+
+    .hname {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #2e7d32;
+      margin-bottom: 2px;
+    }
+
+    .hitem.fail .hname {
+      color: #c62828;
+    }
+
+    .hdetail {
+      font-size: 0.82rem;
+      color: #888;
+      margin-bottom: 6px;
+    }
+
+    .htag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 12px;
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .htime {
+      font-size: 0.75rem;
+      color: #bbb;
+      white-space: nowrap;
+      text-align: right;
+      line-height: 1.7;
+    }
+
+    .hbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .hcount {
+      font-size: 0.88rem;
+      color: #666;
+      font-weight: 500;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .sbox {
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: white;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 11px 14px;
+      transition: border-color .2s;
+    }
+
+    .sbox:focus-within {
+      border-color: #4caf50;
+    }
+
+    .sbox input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.9rem;
+      color: #333;
+    }
+
+    .sbox input::placeholder {
+      color: #bbb;
+    }
+
+    .fsel {
+      padding: 11px 14px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 10px;
+      background: white;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.88rem;
+      color: #555;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .fsel:focus {
+      border-color: #4caf50;
+    }
+
+    .btn {
+      padding: 11px 20px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all .2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .btn-green {
+      background: #2e7d32;
+      color: white;
+    }
+
+    .btn-green:hover {
+      background: #1b5e20;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(46,125,50,0.25);
+    }
+
+    .btn-outline {
+      background: white;
+      border: 1.5px solid #ddd;
+      color: #555;
+    }
+
+    .btn-outline:hover {
+      border-color: #888;
+      color: #222;
+    }
+
+    .btn-red {
+      background: #fce4ec;
+      color: #c62828;
+      border: 1px solid #f8bbd9;
+    }
+
+    .btn-red:hover {
+      background: #f8bbd9;
+    }
+
+    .btn-sm {
+      padding: 6px 13px;
+      font-size: 0.8rem;
+      border-radius: 8px;
+    }
+
+    .twrap {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: #f9fbe7;
+    }
+
+    th {
+      padding: 13px 18px;
+      text-align: left;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: #666;
+      border-bottom: 2px solid #e8f5e9;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #f5f5f5;
+      transition: background .12s;
+      cursor: pointer;
+    }
+
+    tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background: #f1f8e9;
+    }
+
+    td {
+      padding: 14px 18px;
+      font-size: 0.9rem;
+      color: #555;
+      vertical-align: middle;
+    }
+
+    .tdn { font-weight: 700; color: #1b5e20; font-size: 0.95rem; }
+    .tdm { font-size: 0.8rem; color: #999; }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .bg { background: #e8f5e9; color: #2e7d32; }
+    .bo { background: #fff3e0; color: #e65100; }
+
+    .arow {
+      display: flex;
+      gap: 6px;
+    }
+
+    .erow td {
+      text-align: center;
+      padding: 50px;
+      color: #bbb;
+      font-size: 0.9rem;
+    }
+
+    .pag {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .pag-info {
+      font-size: 0.82rem;
+      color: #999;
+    }
+
+    .pag-btns {
+      display: flex;
+      gap: 5px;
+    }
+
+    .pbn {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: 1.5px solid #ddd;
+      background: white;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .15s;
+    }
+
+    .pbn:hover { border-color: #4caf50; color: #2e7d32; }
+    .pbn.on    { background: #2e7d32; border-color: #2e7d32; color: white; }
+
+    .fcard {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+      max-width: 720px;
+      overflow: hidden;
+    }
+
+    .fgrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding: 22px;
+    }
+
+    .fg {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .fg.full {
+      grid-column: 1 / -1;
+    }
+
+    .fl {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: #777;
+    }
+
+    .fi, .ft {
+      padding: 11px 14px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 10px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.92rem;
+      color: #333;
+      outline: none;
+      transition: all .2s;
+      width: 100%;
+    }
+
+    .fi:focus, .ft:focus {
+      border-color: #4caf50;
+      box-shadow: 0 0 0 3px rgba(76,175,80,0.1);
+    }
+
+    .fi::placeholder, .ft::placeholder {
+      color: #ccc;
+    }
+
+    .ft {
+      resize: vertical;
+      min-height: 80px;
+      line-height: 1.6;
+    }
+
+    .ffoot {
+      padding: 0 22px 22px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(3px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: white;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+      animation: fi .25s ease;
+    }
+
+    .modal::-webkit-scrollbar       { width: 4px; }
+    .modal::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+
+    .mhead {
+      padding: 20px 24px;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      background: white;
+      z-index: 2;
+    }
+
+    .mtitle {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1b5e20;
+    }
+
+    .mcl {
+      background: #f5f5f5;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: .9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .15s;
+    }
+
+    .mcl:hover {
+      background: #eee;
+    }
+
+    .mbody {
+      padding: 20px 24px;
+    }
+
+    .mgrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .mfoot {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding-top: 14px;
+      border-top: 1px solid #f0f0f0;
+      margin-top: 4px;
+    }
+
+    .dbody {
+      text-align: center;
+      padding: 36px 24px;
+    }
+
+    .dico   { font-size: 3rem; margin-bottom: 14px; }
+    .dtitle { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+    .dsub   { font-size: 0.9rem; color: #777; line-height: 1.7; margin-bottom: 24px; }
+
+    .toasts {
+      position: fixed;
+      bottom: 22px;
+      right: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 2000;
+    }
+
+    .toast {
+      padding: 13px 18px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: fi .3s ease;
+      min-width: 260px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+    }
+
+    .toast.s { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+    .toast.e { background: #fce4ec; color: #c62828; border: 1px solid #f8bbd9; }
+    .toast.i { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+
+    @media (max-width: 900px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .two   { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 600px) {
+      .content        { padding: 0 14px 40px; }
+      .fgrid, .mgrid  { grid-template-columns: 1fr; }
+    }
+
+  </style>
+
 </head>
+
 <body>
 
-<div class="shell">
+  <header class="topbar">
 
-    <!-- ═══ TOPBAR ═══ -->
-    <header class="topbar">
-        <div class="logo">
-            <div class="logo-icon">👁</div>
-            <div>
-                <div class="logo-name">Assistive<span>Eyes</span></div>
-                <div class="logo-tag">Admin Control Panel</div>
-            </div>
-        </div>
-        <div class="topbar-right">
-            <div class="system-status">
-                <div class="dot-pulse"></div>
-                ALL SYSTEMS NOMINAL
-            </div>
-            <div class="topbar-avatar">👤</div>
-        </div>
-    </header>
-
-    <!-- ═══ SIDEBAR ═══ -->
-    <nav class="sidebar">
-        <div class="sidebar-section">
-            <div class="sidebar-label">Navigation</div>
-            <div class="nav-item active" onclick="showPage('dashboard', this)">
-                <span class="nav-icon">⬡</span> Dashboard
-            </div>
-            <div class="nav-item" onclick="showPage('medicines', this)">
-                <span class="nav-icon">💊</span> Medicines
-                <span class="nav-badge" id="medCountBadge">—</span>
-            </div>
-            <div class="nav-item" onclick="showPage('add', this)">
-                <span class="nav-icon">＋</span> Add Medicine
-            </div>
-        </div>
-
-        <div class="sidebar-divider"></div>
-
-        <div class="sidebar-section">
-            <div class="sidebar-label">System</div>
-            <div class="nav-item" onclick="showPage('about', this)">
-                <span class="nav-icon">ℹ</span> About
-            </div>
-        </div>
-
-        <div class="sidebar-bottom">
-            <a class="back-link" href="/">← Back to Scanner</a>
-        </div>
-    </nav>
-
-    <!-- ═══ CONTENT ═══ -->
-    <main class="content">
-
-        <!-- ── DASHBOARD ── -->
-        <div class="page active" id="page-dashboard">
-            <div class="page-header">
-                <div>
-                    <div class="page-title">Dashboard</div>
-                    <div class="page-sub">System Overview</div>
-                </div>
-                <button class="btn btn-ghost" onclick="loadAll()">↺ &nbsp;Refresh</button>
-            </div>
-
-            <div class="stat-grid">
-                <div class="stat-card cyan">
-                    <div class="stat-icon">💊</div>
-                    <div class="stat-val" id="statTotal">—</div>
-                    <div class="stat-label">Total Medicines</div>
-                </div>
-                <div class="stat-card green">
-                    <div class="stat-icon">🗂</div>
-                    <div class="stat-val" id="statCats">—</div>
-                    <div class="stat-label">Categories</div>
-                </div>
-                <div class="stat-card amber">
-                    <div class="stat-icon">⚠</div>
-                    <div class="stat-val" id="statWarnings">—</div>
-                    <div class="stat-label">With Warnings</div>
-                </div>
-                <div class="stat-card purple">
-                    <div class="stat-icon">🔤</div>
-                    <div class="stat-val" id="statGenerics">—</div>
-                    <div class="stat-label">Have Generic Name</div>
-                </div>
-            </div>
-
-            <div class="two-col">
-                <div class="card">
-                    <div class="card-head">
-                        <div class="card-title">Categories</div>
-                        <span class="badge badge-cyan">BREAKDOWN</span>
-                    </div>
-                    <div class="card-body" id="catBreakdown">
-                        <div style="color:var(--t3);font-size:.75rem;">Loading...</div>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-head">
-                        <div class="card-title">Recent Entries</div>
-                        <span class="badge badge-green">LATEST 5</span>
-                    </div>
-                    <div class="card-body" id="recentList">
-                        <div style="color:var(--t3);font-size:.75rem;">Loading...</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ── MEDICINES TABLE ── -->
-        <div class="page" id="page-medicines">
-            <div class="page-header">
-                <div>
-                    <div class="page-title">Medicines</div>
-                    <div class="page-sub">Database Records</div>
-                </div>
-                <button class="btn btn-primary" onclick="openAddModal()">＋ &nbsp;Add Medicine</button>
-            </div>
-
-            <div class="toolbar">
-                <div class="search-box">
-                    <span style="color:var(--t3)">🔍</span>
-                    <input type="text" id="searchInput" placeholder="Search by name, generic or category…" oninput="filterTable()">
-                </div>
-                <select class="filter-select" id="catFilter" onchange="filterTable()">
-                    <option value="">All Categories</option>
-                </select>
-                <button class="btn btn-ghost" onclick="filterTable()">Filter</button>
-            </div>
-
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Medicine Name</th>
-                            <th>Generic Name</th>
-                            <th>Category</th>
-                            <th>Dosage</th>
-                            <th>Warning</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="medicinesTable">
-                        <tr class="loading-row"><td colspan="7">LOADING DATABASE…</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="pagination">
-                <div class="page-info" id="pageInfo">—</div>
-                <div class="page-btns" id="pageBtns"></div>
-            </div>
-        </div>
-
-        <!-- ── ADD MEDICINE PAGE ── -->
-        <div class="page" id="page-add">
-            <div class="page-header">
-                <div>
-                    <div class="page-title">Add Medicine</div>
-                    <div class="page-sub">New Database Entry</div>
-                </div>
-            </div>
-
-            <div class="card" style="max-width:700px;">
-                <div class="card-head">
-                    <div class="card-title">Medicine Details</div>
-                    <span class="badge badge-cyan">NEW RECORD</span>
-                </div>
-                <div class="card-body">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label class="form-label">Brand Name *</label>
-                            <input class="form-input" id="add_name" type="text" placeholder="e.g. Crocin">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Generic Name</label>
-                            <input class="form-input" id="add_generic" type="text" placeholder="e.g. Paracetamol">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Category *</label>
-                            <input class="form-input" id="add_category" type="text" placeholder="e.g. Painkiller">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Dosage *</label>
-                            <input class="form-input" id="add_dosage" type="text" placeholder="e.g. 500mg every 6 hours">
-                        </div>
-                        <div class="form-group full">
-                            <label class="form-label">Uses *</label>
-                            <textarea class="form-textarea" id="add_uses" placeholder="What is this medicine used for?"></textarea>
-                        </div>
-                        <div class="form-group full">
-                            <label class="form-label">Side Effects *</label>
-                            <textarea class="form-textarea" id="add_side_effects" placeholder="Known side effects…"></textarea>
-                        </div>
-                        <div class="form-group full">
-                            <label class="form-label">Warnings</label>
-                            <textarea class="form-textarea" id="add_warnings" placeholder="Optional danger alerts…" style="min-height:60px;"></textarea>
-                        </div>
-                    </div>
-                    <div class="form-footer" style="border:none; padding-top:0; margin-top:0; justify-content:flex-start; gap:10px;">
-                        <button class="btn btn-primary" onclick="submitAdd()">＋ &nbsp;Add to Database</button>
-                        <button class="btn btn-ghost" onclick="clearAddForm()">Clear</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ── ABOUT ── -->
-        <div class="page" id="page-about">
-            <div class="page-header">
-                <div>
-                    <div class="page-title">About</div>
-                    <div class="page-sub">System Information</div>
-                </div>
-            </div>
-            <div class="card" style="max-width:600px;">
-                <div class="card-head"><div class="card-title">Assistive Eyes</div></div>
-                <div class="card-body" style="display:flex;flex-direction:column;gap:14px;">
-                    <div style="font-size:.9rem;color:var(--t2);line-height:1.8;">
-                        A dual-mode medicine label reader for both sighted users and visually impaired individuals.
-                        Built with Django, OpenCV, EasyOCR, and FuzzyWuzzy.
-                    </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                        <div class="form-group">
-                            <div class="form-label">Backend</div>
-                            <div style="color:var(--cyan);font-family:'DM Mono',monospace;font-size:.8rem;">Django 6.0 + Python 3.13</div>
-                        </div>
-                        <div class="form-group">
-                            <div class="form-label">Vision</div>
-                            <div style="color:var(--green);font-family:'DM Mono',monospace;font-size:.8rem;">OpenCV + EasyOCR</div>
-                        </div>
-                        <div class="form-group">
-                            <div class="form-label">Matching</div>
-                            <div style="color:var(--amber);font-family:'DM Mono',monospace;font-size:.8rem;">FuzzyWuzzy</div>
-                        </div>
-                        <div class="form-group">
-                            <div class="form-label">Database</div>
-                            <div style="color:var(--purple);font-family:'DM Mono',monospace;font-size:.8rem;">SQLite</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </main><!-- /content -->
-</div><!-- /shell -->
-
-<!-- ═══ EDIT MODAL ═══ -->
-<div class="modal-overlay" id="editModal">
-    <div class="modal">
-        <div class="modal-head">
-            <div class="modal-title">Edit Medicine</div>
-            <button class="modal-close" onclick="closeModal('editModal')">✕</button>
-        </div>
-        <div class="modal-body">
-            <input type="hidden" id="edit_id">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label class="form-label">Brand Name *</label>
-                    <input class="form-input" id="edit_name" type="text">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Generic Name</label>
-                    <input class="form-input" id="edit_generic" type="text">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Category *</label>
-                    <input class="form-input" id="edit_category" type="text">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Dosage *</label>
-                    <input class="form-input" id="edit_dosage" type="text">
-                </div>
-                <div class="form-group full">
-                    <label class="form-label">Uses *</label>
-                    <textarea class="form-textarea" id="edit_uses"></textarea>
-                </div>
-                <div class="form-group full">
-                    <label class="form-label">Side Effects *</label>
-                    <textarea class="form-textarea" id="edit_side_effects"></textarea>
-                </div>
-                <div class="form-group full">
-                    <label class="form-label">Warnings</label>
-                    <textarea class="form-textarea" id="edit_warnings" style="min-height:60px;"></textarea>
-                </div>
-            </div>
-            <div class="form-footer">
-                <button class="btn btn-ghost" onclick="closeModal('editModal')">Cancel</button>
-                <button class="btn btn-primary" onclick="submitEdit()">Save Changes</button>
-            </div>
-        </div>
+    <div class="tb-left">
+      <div class="tb-icon">👁</div>
+      <div>
+        <div class="tb-title">Assistive Eyes</div>
+        <div class="tb-sub">Admin Panel</div>
+      </div>
     </div>
-</div>
 
-<!-- ═══ DELETE CONFIRM MODAL ═══ -->
-<div class="modal-overlay" id="deleteModal">
-    <div class="modal del-modal" style="max-width:400px;">
-        <div class="modal-body">
-            <div class="del-icon">🗑</div>
-            <div class="del-title">Delete Medicine?</div>
-            <div class="del-sub" id="delModalSub">This will permanently remove this entry from the database.</div>
-            <input type="hidden" id="del_id">
-            <div style="display:flex;gap:10px;justify-content:center;">
-                <button class="btn btn-ghost" onclick="closeModal('deleteModal')">Cancel</button>
-                <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
-            </div>
-        </div>
+    <div class="tb-right">
+      <div class="online-badge"><div class="odot"></div>Online</div>
+      <a class="back-btn" href="/">← Scanner</a>
     </div>
-</div>
 
-<!-- ═══ TOAST ═══ -->
-<div class="toast-container" id="toastContainer"></div>
+  </header>
 
-<script>
-// ═══════════════════════════════════
-// STATE
-// ═══════════════════════════════════
-let allMedicines = [];
-let filteredMedicines = [];
-let currentPage = 1;
-const PER_PAGE = 10;
+  <div class="tabbar">
+    <div class="tab on" onclick="goTab('dash', this)">🏠 Dashboard</div>
+    <div class="tab" onclick="goTab('meds', this)">💊 Medicines <span class="tbadge" id="mbadge">0</span></div>
+    <div class="tab" onclick="goTab('history', this)">🕐 Scan History <span class="tbadge" id="hbadge">0</span></div>
+    <div class="tab" onclick="goTab('add', this)">➕ Add Medicine</div>
+  </div>
 
-const CATEGORY_COLORS = {
-    'painkiller':       'badge-cyan',
-    'antibiotic':       'badge-green',
-    'antacid':          'badge-amber',
-    'antihistamine':    'badge-purple',
-    'diabetic':         'badge-red',
-    'cholesterol':      'badge-cyan',
-    'anti-inflammatory':'badge-green',
-};
+  <div class="content">
 
-function getCatBadge(cat) {
-    const key = (cat || '').toLowerCase();
-    const cls = CATEGORY_COLORS[key] || 'badge-cyan';
-    return `<span class="badge ${cls}">${cat || '—'}</span>`;
-}
+    <div class="page on" id="tab-dash">
 
-// ═══════════════════════════════════
-// NAVIGATION
-// ═══════════════════════════════════
-function showPage(id, el) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById('page-' + id).classList.add('active');
-    if (el) el.classList.add('active');
-    if (id === 'medicines') renderTable();
-}
+      <div class="phead">
+        <div><div class="ptitle">Dashboard 👋</div><div class="psub">Overview of your medicine database</div></div>
+        <button class="btn btn-outline" onclick="loadAll()">🔄 Refresh</button>
+      </div>
 
-// ═══════════════════════════════════
-// LOAD DATA
-// ═══════════════════════════════════
-async function loadAll() {
-    try {
-        const res = await fetch('/api/medicines/');
-        const data = await res.json();
-        allMedicines = data.medicines || [];
-        filteredMedicines = [...allMedicines];
-        updateDashboard();
-        updateMedBadge();
-        populateCatFilter();
-        renderTable();
-    } catch (e) {
-        toast('Failed to load medicines. Is the server running?', 'error');
-    }
-}
+      <div class="stats">
+        <div class="sc c1"><div class="sc-ico">💊</div><div><div class="sc-num" id="st1">—</div><div class="sc-lbl">Total Medicines</div></div></div>
+        <div class="sc c2"><div class="sc-ico">📂</div><div><div class="sc-num" id="st2">—</div><div class="sc-lbl">Categories</div></div></div>
+        <div class="sc c3"><div class="sc-ico">⚠️</div><div><div class="sc-num" id="st3">—</div><div class="sc-lbl">With Warnings</div></div></div>
+        <div class="sc c4"><div class="sc-ico">🔬</div><div><div class="sc-num" id="st4">—</div><div class="sc-lbl">Have Generic Name</div></div></div>
+      </div>
 
-function updateMedBadge() {
-    document.getElementById('medCountBadge').textContent = allMedicines.length;
-}
+      <div class="two">
 
-// ═══════════════════════════════════
-// DASHBOARD
-// ═══════════════════════════════════
-function updateDashboard() {
-    const total = allMedicines.length;
-    const cats  = [...new Set(allMedicines.map(m => m.category))].length;
-    const warns = allMedicines.filter(m => m.warnings && m.warnings.trim()).length;
-    const gens  = allMedicines.filter(m => m.generic_name && m.generic_name.trim()).length;
-
-    document.getElementById('statTotal').textContent    = total;
-    document.getElementById('statCats').textContent     = cats;
-    document.getElementById('statWarnings').textContent = warns;
-    document.getElementById('statGenerics').textContent = gens;
-
-    // Category breakdown
-    const catCounts = {};
-    allMedicines.forEach(m => { catCounts[m.category] = (catCounts[m.category] || 0) + 1; });
-    const sorted = Object.entries(catCounts).sort((a,b) => b[1]-a[1]);
-    const max = sorted[0]?.[1] || 1;
-
-    document.getElementById('catBreakdown').innerHTML = sorted.map(([cat, count]) => `
-        <div class="cat-row">
-            <div class="cat-name">${cat}</div>
-            <div class="cat-bar-wrap">
-                <div class="cat-bar" style="width:${(count/max*100)}%"></div>
-            </div>
-            <div class="cat-count">${count}</div>
+        <div class="card">
+          <div class="ch"><div class="ct">📊 By Category</div></div>
+          <div class="cb" id="catbk"><span style="color:#bbb;font-size:.88rem;">Loading...</span></div>
         </div>
-    `).join('') || '<div style="color:var(--t3);font-size:.75rem;">No data</div>';
 
-    // Recent 5
-    const recent = [...allMedicines].slice(-5).reverse();
-    const colors = ['var(--cyan)','var(--green)','var(--amber)','var(--purple)','var(--red)'];
-    document.getElementById('recentList').innerHTML = recent.map((m, i) => `
-        <div class="recent-item" onclick="openEditModal(${m.id || i})">
-            <div class="recent-dot" style="background:${colors[i%colors.length]};box-shadow:0 0 6px ${colors[i%colors.length]}"></div>
-            <div class="recent-name">${m.name}</div>
-            <div class="recent-cat">${m.category}</div>
+        <div class="card">
+          <div class="ch"><div class="ct">🕐 Recently Added</div></div>
+          <div class="cb" id="reclist"><span style="color:#bbb;font-size:.88rem;">Loading...</span></div>
         </div>
-    `).join('') || '<div style="color:var(--t3);font-size:.75rem;">No data</div>';
-}
 
-// ═══════════════════════════════════
-// TABLE
-// ═══════════════════════════════════
-function populateCatFilter() {
-    const cats = [...new Set(allMedicines.map(m => m.category))].sort();
-    const sel = document.getElementById('catFilter');
-    sel.innerHTML = '<option value="">All Categories</option>' +
-        cats.map(c => `<option value="${c}">${c}</option>`).join('');
-}
+      </div>
 
-function filterTable() {
-    const q   = document.getElementById('searchInput').value.toLowerCase();
-    const cat = document.getElementById('catFilter').value;
-    filteredMedicines = allMedicines.filter(m => {
-        const match = !q || m.name.toLowerCase().includes(q)
-                         || (m.generic_name||'').toLowerCase().includes(q)
-                         || (m.category||'').toLowerCase().includes(q);
-        const catMatch = !cat || m.category === cat;
-        return match && catMatch;
-    });
-    currentPage = 1;
-    renderTable();
-}
+    </div>
 
-function renderTable() {
-    const tbody = document.getElementById('medicinesTable');
-    const total = filteredMedicines.length;
-    const pages = Math.ceil(total / PER_PAGE) || 1;
-    if (currentPage > pages) currentPage = pages;
+    <div class="page" id="tab-meds">
 
-    const start = (currentPage - 1) * PER_PAGE;
-    const slice = filteredMedicines.slice(start, start + PER_PAGE);
+      <div class="phead">
+        <div><div class="ptitle">Medicines 💊</div><div class="psub">All records in the database</div></div>
+        <button class="btn btn-green" onclick="goTab('add', document.querySelectorAll('.tab')[3])">➕ Add New</button>
+      </div>
 
-    document.getElementById('pageInfo').textContent =
-        `Showing ${start+1}–${Math.min(start+PER_PAGE, total)} of ${total} records`;
+      <div class="toolbar">
+        <div class="sbox">🔍 <input type="text" id="qinput" placeholder="Search name, generic or category…" oninput="filterTable()"></div>
+        <select class="fsel" id="catfil" onchange="filterTable()"><option value="">All Categories</option></select>
+      </div>
 
-    if (!slice.length) {
-        tbody.innerHTML = `<tr><td colspan="7">
-            <div class="empty-table">
-                <div class="empty-table-icon">💊</div>
-                <div class="empty-table-txt">NO RECORDS FOUND</div>
-            </div>
-        </td></tr>`;
-    } else {
-        tbody.innerHTML = slice.map((m, i) => `
+      <div class="twrap">
+        <table>
+          <thead>
             <tr>
-                <td class="td-mono">${start + i + 1}</td>
-                <td class="td-name">${m.name}</td>
-                <td class="td-mono">${m.generic_name || '—'}</td>
-                <td>${getCatBadge(m.category)}</td>
-                <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m.dosage}</td>
-                <td>${m.warnings ? '<span class="badge badge-red">⚠ YES</span>' : '<span style="color:var(--t3);font-size:.75rem;">—</span>'}</td>
-                <td>
-                    <div class="actions-cell">
-                        <button class="btn btn-ghost btn-sm" onclick="openEditModal(${m.id})">✏ Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="openDeleteModal(${m.id}, '${m.name.replace(/'/g,"\\'")}')">🗑</button>
-                    </div>
-                </td>
+              <th>#</th><th>Medicine Name</th><th>Generic</th><th>Category</th><th>Dosage</th><th>Warning</th><th>Actions</th>
             </tr>
-        `).join('');
+          </thead>
+          <tbody id="mtable">
+            <tr class="erow"><td colspan="7">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pag">
+        <div class="pag-info" id="pinfo">—</div>
+        <div class="pag-btns" id="pbtns"></div>
+      </div>
+
+    </div>
+
+    <div class="page" id="tab-history">
+
+      <div class="phead">
+        <div><div class="ptitle">Scan History 🕐</div><div class="psub">All scans done in this session</div></div>
+        <button class="btn btn-outline" onclick="clearHistory()">🗑 Clear All</button>
+      </div>
+
+      <div class="card">
+        <div class="cb" id="histContent">
+          <div class="hempty">
+            <div class="hempty-ico">🔬</div>
+            <p>No scans yet.<br>Go to the scanner and scan a medicine.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="page" id="tab-add">
+
+      <div class="phead">
+        <div><div class="ptitle">Add Medicine ➕</div><div class="psub">Enter all details below</div></div>
+      </div>
+
+      <div class="fcard">
+
+        <div class="ch"><div class="ct">💊 Medicine Details</div></div>
+
+        <div class="fgrid">
+          <div class="fg"><label class="fl">Brand Name *</label><input class="fi" id="an" placeholder="e.g. Crocin"></div>
+          <div class="fg"><label class="fl">Generic Name</label><input class="fi" id="ag" placeholder="e.g. Paracetamol"></div>
+          <div class="fg"><label class="fl">Category *</label><input class="fi" id="ac" placeholder="e.g. Painkiller"></div>
+          <div class="fg"><label class="fl">Dosage *</label><input class="fi" id="ad" placeholder="e.g. 500mg every 6 hours"></div>
+          <div class="fg full"><label class="fl">Uses *</label><textarea class="ft" id="au" placeholder="What is this medicine used for?"></textarea></div>
+          <div class="fg full"><label class="fl">Side Effects *</label><textarea class="ft" id="as" placeholder="List known side effects..."></textarea></div>
+          <div class="fg full"><label class="fl">Warnings</label><textarea class="ft" id="aw" placeholder="Any danger warnings (optional)..." style="min-height:64px;"></textarea></div>
+        </div>
+
+        <div class="ffoot">
+          <button class="btn btn-green" onclick="submitAdd()">➕ Add to Database</button>
+          <button class="btn btn-outline" onclick="clearAdd()">Clear</button>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="overlay" id="editModal">
+    <div class="modal">
+      <div class="mhead">
+        <div class="mtitle">✏️ Edit Medicine</div>
+        <button class="mcl" onclick="closeM('editModal')">✕</button>
+      </div>
+      <div class="mbody">
+        <input type="hidden" id="eid">
+        <div class="mgrid">
+          <div class="fg"><label class="fl">Brand Name *</label><input class="fi" id="en"></div>
+          <div class="fg"><label class="fl">Generic Name</label><input class="fi" id="eg"></div>
+          <div class="fg"><label class="fl">Category *</label><input class="fi" id="ec"></div>
+          <div class="fg"><label class="fl">Dosage *</label><input class="fi" id="ed"></div>
+          <div class="fg full"><label class="fl">Uses *</label><textarea class="ft" id="eu"></textarea></div>
+          <div class="fg full"><label class="fl">Side Effects *</label><textarea class="ft" id="es"></textarea></div>
+          <div class="fg full"><label class="fl">Warnings</label><textarea class="ft" id="ew" style="min-height:64px;"></textarea></div>
+        </div>
+        <div class="mfoot">
+          <button class="btn btn-outline" onclick="closeM('editModal')">Cancel</button>
+          <button class="btn btn-green" onclick="submitEdit()">Save Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="delModal">
+    <div class="modal" style="max-width:380px;">
+      <div class="dbody">
+        <div class="dico">🗑️</div>
+        <div class="dtitle">Delete this medicine?</div>
+        <div class="dsub" id="dsub">This record will be permanently removed.</div>
+        <input type="hidden" id="delid">
+        <div style="display:flex;gap:10px;justify-content:center;">
+          <button class="btn btn-outline" onclick="closeM('delModal')">Cancel</button>
+          <button class="btn btn-red" onclick="confirmDel()">Yes, Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts"></div>
+
+  <script>
+
+    let all      = [];
+    let filtered = [];
+    let cur      = 1;
+
+    const PER    = 10;
+    const COLORS = ['#4caf50','#1976d2','#f57c00','#e91e63','#9c27b0','#00838f'];
+
+    function getHist() {
+      try { return JSON.parse(sessionStorage.getItem('scanHistory') || '[]'); }
+      catch { return []; }
     }
 
-    // Pagination buttons
-    const pb = document.getElementById('pageBtns');
-    pb.innerHTML = '';
-    for (let p = 1; p <= pages; p++) {
-        const btn = document.createElement('button');
-        btn.className = 'page-btn' + (p === currentPage ? ' active' : '');
-        btn.textContent = p;
-        btn.onclick = () => { currentPage = p; renderTable(); };
-        pb.appendChild(btn);
-    }
-}
-
-// ═══════════════════════════════════
-// MODALS
-// ═══════════════════════════════════
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-function openAddModal() {
-    showPage('add', document.querySelector('[onclick*="showPage(\'add\'"]'));
-}
-
-function openEditModal(id) {
-    const med = allMedicines.find(m => m.id === id);
-    if (!med) { toast('Medicine not found', 'error'); return; }
-    document.getElementById('edit_id').value          = med.id;
-    document.getElementById('edit_name').value        = med.name;
-    document.getElementById('edit_generic').value     = med.generic_name || '';
-    document.getElementById('edit_category').value    = med.category;
-    document.getElementById('edit_dosage').value      = med.dosage;
-    document.getElementById('edit_uses').value        = med.uses;
-    document.getElementById('edit_side_effects').value= med.side_effects;
-    document.getElementById('edit_warnings').value    = med.warnings || '';
-    openModal('editModal');
-}
-
-function openDeleteModal(id, name) {
-    document.getElementById('del_id').value    = id;
-    document.getElementById('delModalSub').textContent =
-        `"${name}" will be permanently removed from the database.`;
-    openModal('deleteModal');
-}
-
-// Close on overlay click
-document.querySelectorAll('.modal-overlay').forEach(ov => {
-    ov.addEventListener('click', e => { if (e.target === ov) closeModal(ov.id); });
-});
-
-// ═══════════════════════════════════
-// CRUD OPERATIONS
-// ═══════════════════════════════════
-async function submitAdd() {
-    const name    = document.getElementById('add_name').value.trim();
-    const generic = document.getElementById('add_generic').value.trim();
-    const cat     = document.getElementById('add_category').value.trim();
-    const dosage  = document.getElementById('add_dosage').value.trim();
-    const uses    = document.getElementById('add_uses').value.trim();
-    const sfx     = document.getElementById('add_side_effects').value.trim();
-    const warn    = document.getElementById('add_warnings').value.trim();
-
-    if (!name || !cat || !dosage || !uses || !sfx) {
-        toast('Please fill all required fields (*)', 'error'); return;
+    function saveHist(h) {
+      sessionStorage.setItem('scanHistory', JSON.stringify(h));
     }
 
-    try {
-        const res = await fetch('/api/medicines/add/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, generic_name: generic, category: cat,
-                                   dosage, uses, side_effects: sfx, warnings: warn })
+    // Called from scanner page after each scan to log it here
+    window.logScan = function(result) {
+
+      const h = getHist();
+
+      h.unshift({
+        id:       Date.now(),
+        time:     new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
+        date:     new Date().toLocaleDateString('en-IN'),
+        success:  result.success,
+        name:     result.success ? result.medicine.name : 'Not Found',
+        generic:  result.success ? (result.medicine.generic_name || '') : '',
+        category: result.success ? result.medicine.category : '',
+        message:  result.success ? '' : result.message
+      });
+
+      if (h.length > 50) h.pop();
+
+      saveHist(h);
+      updateHBadge();
+      renderHist();
+
+    };
+
+    function updateHBadge() {
+      document.getElementById('hbadge').textContent = getHist().length;
+    }
+
+    function renderHist() {
+
+      const h  = getHist();
+      const el = document.getElementById('histContent');
+
+      if (!h.length) {
+        el.innerHTML = `
+          <div class="hempty">
+            <div class="hempty-ico">🔬</div>
+            <p>No scans yet.<br>Go to the scanner and scan a medicine.</p>
+          </div>`;
+        return;
+      }
+
+      const ok = h.filter(s => s.success).length;
+
+      el.innerHTML = `
+        <div class="hbar">
+          <div class="hcount">
+            ${h.length} scan${h.length !== 1 ? 's' : ''} —
+            <span style="color:#2e7d32;font-weight:600;">${ok} found</span> ·
+            <span style="color:#c62828;font-weight:600;">${h.length - ok} failed</span>
+          </div>
+        </div>
+        <div>
+          ${h.map(s => `
+            <div class="hitem ${s.success ? '' : 'fail'}">
+              <div class="hico ${s.success ? 'ok' : 'fail'}">${s.success ? '✅' : '❌'}</div>
+              <div class="hinfo">
+                <div class="hname">${s.name}</div>
+                <div class="hdetail">${s.success ? (s.generic || 'No generic name') : s.message}</div>
+                ${s.success ? `<span class="htag">${s.category}</span>` : ''}
+              </div>
+              <div class="htime">${s.time}<br><span style="font-size:.68rem;">${s.date}</span></div>
+            </div>
+          `).join('')}
+        </div>`;
+
+    }
+
+    function clearHistory() {
+      sessionStorage.removeItem('scanHistory');
+      renderHist();
+      updateHBadge();
+      toast('Scan history cleared', 'i');
+    }
+
+    function goTab(id, el) {
+
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+
+      document.getElementById('tab-' + id).classList.add('on');
+
+      if (el) el.classList.add('on');
+
+      if (id === 'meds')    renderTable();
+      if (id === 'history') renderHist();
+
+    }
+
+    async function loadAll() {
+
+      try {
+
+        const r = await fetch('/api/medicines/');
+        const d = await r.json();
+
+        all      = d.medicines || [];
+        filtered = [...all];
+
+        updateDash();
+
+        document.getElementById('mbadge').textContent = all.length;
+
+        popFilter();
+        renderTable();
+
+      } catch(e) {
+        toast('Could not load. Is the server running?', 'e');
+      }
+
+    }
+
+    function updateDash() {
+
+      document.getElementById('st1').textContent = all.length;
+      document.getElementById('st2').textContent = [...new Set(all.map(m => m.category))].length;
+      document.getElementById('st3').textContent = all.filter(m => m.warnings && m.warnings.trim()).length;
+      document.getElementById('st4').textContent = all.filter(m => m.generic_name && m.generic_name.trim()).length;
+
+      const counts = {};
+      all.forEach(m => { counts[m.category] = (counts[m.category] || 0) + 1; });
+
+      const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+      const mx     = sorted[0]?.[1] || 1;
+
+      document.getElementById('catbk').innerHTML = sorted.length
+        ? sorted.map(([cat, n]) => `
+            <div class="crow">
+              <div class="cname">${cat}</div>
+              <div class="cbg"><div class="cbar" style="width:${n / mx * 100}%"></div></div>
+              <div class="ccnt">${n}</div>
+            </div>`).join('')
+        : '<span style="color:#bbb;font-size:.88rem;">No data yet</span>';
+
+      const rec = [...all].slice(-5).reverse();
+
+      document.getElementById('reclist').innerHTML = rec.length
+        ? rec.map((m, i) => `
+            <div class="ritem" onclick="openEdit(${m.id})">
+              <div class="rava" style="background:${COLORS[i % COLORS.length]}">${m.name.charAt(0).toUpperCase()}</div>
+              <div class="rname">${m.name}</div>
+              <div class="rcat">${m.category}</div>
+            </div>`).join('')
+        : '<span style="color:#bbb;font-size:.88rem;">No entries yet</span>';
+
+    }
+
+    function popFilter() {
+
+      const cats = [...new Set(all.map(m => m.category))].sort();
+
+      document.getElementById('catfil').innerHTML =
+        '<option value="">All Categories</option>' +
+        cats.map(c => `<option value="${c}">${c}</option>`).join('');
+
+    }
+
+    function filterTable() {
+
+      const q   = document.getElementById('qinput').value.toLowerCase();
+      const cat = document.getElementById('catfil').value;
+
+      filtered = all.filter(m => {
+        const match = !q ||
+          m.name.toLowerCase().includes(q) ||
+          (m.generic_name || '').toLowerCase().includes(q) ||
+          (m.category || '').toLowerCase().includes(q);
+        return match && (!cat || m.category === cat);
+      });
+
+      cur = 1;
+      renderTable();
+
+    }
+
+    function renderTable() {
+
+      const total = filtered.length;
+      const pages = Math.ceil(total / PER) || 1;
+
+      if (cur > pages) cur = pages;
+
+      const start = (cur - 1) * PER;
+      const slice = filtered.slice(start, start + PER);
+
+      document.getElementById('pinfo').textContent =
+        `Showing ${start + 1}–${Math.min(start + PER, total)} of ${total} records`;
+
+      const tb = document.getElementById('mtable');
+
+      if (!slice.length) {
+        tb.innerHTML = '<tr class="erow"><td colspan="7">No records found</td></tr>';
+        return;
+      }
+
+      tb.innerHTML = slice.map((m, i) => `<tr>
+        <td class="tdm">${start + i + 1}</td>
+        <td class="tdn">${m.name}</td>
+        <td class="tdm">${m.generic_name || '—'}</td>
+        <td><span class="badge bg">${m.category || '—'}</span></td>
+        <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.85rem;">${m.dosage}</td>
+        <td>${m.warnings ? '<span class="badge bo">⚠ Yes</span>' : '<span style="color:#ccc;font-size:.82rem;">—</span>'}</td>
+        <td>
+          <div class="arow">
+            <button class="btn btn-outline btn-sm" onclick="openEdit(${m.id})">✏ Edit</button>
+            <button class="btn btn-red btn-sm" onclick="openDel(${m.id}, '${m.name.replace(/'/g, "\\'")}')">🗑</button>
+          </div>
+        </td>
+      </tr>`).join('');
+
+      const pb = document.getElementById('pbtns');
+      pb.innerHTML = '';
+
+      for (let p = 1; p <= pages; p++) {
+        const b = document.createElement('button');
+        b.className  = 'pbn' + (p === cur ? ' on' : '');
+        b.textContent = p;
+        b.onclick    = () => { cur = p; renderTable(); };
+        pb.appendChild(b);
+      }
+
+    }
+
+    function openM(id)  { document.getElementById(id).classList.add('open'); }
+    function closeM(id) { document.getElementById(id).classList.remove('open'); }
+
+    document.querySelectorAll('.overlay').forEach(o =>
+      o.addEventListener('click', e => { if (e.target === o) closeM(o.id); })
+    );
+
+    function openEdit(id) {
+
+      const m = all.find(x => x.id === id);
+      if (!m) return;
+
+      document.getElementById('eid').value = m.id;
+      document.getElementById('en').value  = m.name;
+      document.getElementById('eg').value  = m.generic_name || '';
+      document.getElementById('ec').value  = m.category;
+      document.getElementById('ed').value  = m.dosage;
+      document.getElementById('eu').value  = m.uses;
+      document.getElementById('es').value  = m.side_effects;
+      document.getElementById('ew').value  = m.warnings || '';
+
+      openM('editModal');
+
+    }
+
+    function openDel(id, name) {
+      document.getElementById('delid').value = id;
+      document.getElementById('dsub').textContent = `"${name}" will be permanently removed.`;
+      openM('delModal');
+    }
+
+    async function submitAdd() {
+
+      const n = document.getElementById('an').value.trim();
+      const g = document.getElementById('ag').value.trim();
+      const c = document.getElementById('ac').value.trim();
+      const d = document.getElementById('ad').value.trim();
+      const u = document.getElementById('au').value.trim();
+      const s = document.getElementById('as').value.trim();
+      const w = document.getElementById('aw').value.trim();
+
+      if (!n || !c || !d || !u || !s) {
+        toast('Please fill all required fields (*)', 'e');
+        return;
+      }
+
+      try {
+
+        const r    = await fetch('/api/medicines/add/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: n, generic_name: g, category: c, dosage: d, uses: u, side_effects: s, warnings: w })
         });
-        const data = await res.json();
-        if (data.success) {
-            toast(`"${name}" added successfully!`, 'success');
-            clearAddForm();
-            loadAll();
-        } else {
-            toast(data.message || 'Failed to add', 'error');
-        }
-    } catch (e) {
-        toast('Network error', 'error');
-    }
-}
 
-async function submitEdit() {
-    const id      = document.getElementById('edit_id').value;
-    const name    = document.getElementById('edit_name').value.trim();
-    const generic = document.getElementById('edit_generic').value.trim();
-    const cat     = document.getElementById('edit_category').value.trim();
-    const dosage  = document.getElementById('edit_dosage').value.trim();
-    const uses    = document.getElementById('edit_uses').value.trim();
-    const sfx     = document.getElementById('edit_side_effects').value.trim();
-    const warn    = document.getElementById('edit_warnings').value.trim();
+        const data = await r.json();
 
-    if (!name || !cat || !dosage || !uses || !sfx) {
-        toast('Please fill all required fields (*)', 'error'); return;
+        if (data.success) { toast(`"${n}" added! ✅`, 's'); clearAdd(); loadAll(); }
+        else toast(data.message || 'Failed', 'e');
+
+      } catch(e) { toast('Network error', 'e'); }
+
     }
 
-    try {
-        const res = await fetch(`/api/medicines/edit/${id}/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, generic_name: generic, category: cat,
-                                   dosage, uses, side_effects: sfx, warnings: warn })
+    async function submitEdit() {
+
+      const id = document.getElementById('eid').value;
+      const n  = document.getElementById('en').value.trim();
+      const g  = document.getElementById('eg').value.trim();
+      const c  = document.getElementById('ec').value.trim();
+      const d  = document.getElementById('ed').value.trim();
+      const u  = document.getElementById('eu').value.trim();
+      const s  = document.getElementById('es').value.trim();
+      const w  = document.getElementById('ew').value.trim();
+
+      if (!n || !c || !d || !u || !s) {
+        toast('Please fill all required fields (*)', 'e');
+        return;
+      }
+
+      try {
+
+        const r    = await fetch(`/api/medicines/edit/${id}/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: n, generic_name: g, category: c, dosage: d, uses: u, side_effects: s, warnings: w })
         });
-        const data = await res.json();
-        if (data.success) {
-            toast(`"${name}" updated!`, 'success');
-            closeModal('editModal');
-            loadAll();
-        } else {
-            toast(data.message || 'Update failed', 'error');
-        }
-    } catch (e) {
-        toast('Network error', 'error');
+
+        const data = await r.json();
+
+        if (data.success) { toast(`"${n}" updated! ✅`, 's'); closeM('editModal'); loadAll(); }
+        else toast(data.message || 'Update failed', 'e');
+
+      } catch(e) { toast('Network error', 'e'); }
+
     }
-}
 
-async function confirmDelete() {
-    const id = document.getElementById('del_id').value;
-    try {
-        const res = await fetch(`/api/medicines/delete/${id}/`, { method: 'POST' });
-        const data = await res.json();
-        if (data.success) {
-            toast('Medicine deleted.', 'info');
-            closeModal('deleteModal');
-            loadAll();
-        } else {
-            toast(data.message || 'Delete failed', 'error');
-        }
-    } catch (e) {
-        toast('Network error', 'error');
+    async function confirmDel() {
+
+      const id = document.getElementById('delid').value;
+
+      try {
+
+        const r    = await fetch(`/api/medicines/delete/${id}/`, { method: 'POST' });
+        const data = await r.json();
+
+        if (data.success) { toast('Deleted successfully', 'i'); closeM('delModal'); loadAll(); }
+        else toast(data.message || 'Delete failed', 'e');
+
+      } catch(e) { toast('Network error', 'e'); }
+
     }
-}
 
-function clearAddForm() {
-    ['add_name','add_generic','add_category','add_dosage',
-     'add_uses','add_side_effects','add_warnings'].forEach(id => {
-        document.getElementById(id).value = '';
-    });
-}
+    function clearAdd() {
+      ['an', 'ag', 'ac', 'ad', 'au', 'as', 'aw'].forEach(id => document.getElementById(id).value = '');
+    }
 
-// ═══════════════════════════════════
-// TOAST
-// ═══════════════════════════════════
-function toast(msg, type = 'info') {
-    const icons = { success: '✓', error: '✕', info: 'ℹ' };
-    const el = document.createElement('div');
-    el.className = `toast ${type}`;
-    el.innerHTML = `<span>${icons[type]}</span><span>${msg}</span>`;
-    document.getElementById('toastContainer').appendChild(el);
-    setTimeout(() => el.remove(), 3500);
-}
+    function toast(msg, type = 'i') {
 
-// ═══════════════════════════════════
-// INIT
-// ═══════════════════════════════════
-loadAll();
-</script>
+      const icons = { s: '✅', e: '❌', i: 'ℹ️' };
+
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.innerHTML = `<span>${icons[type]}</span><span>${msg}</span>`;
+
+      document.getElementById('toasts').appendChild(el);
+
+      setTimeout(() => el.remove(), 3500);
+
+    }
+
+    loadAll();
+    updateHBadge();
+
+  </script>
+
 </body>
+
 </html>

@@ -1,677 +1,639 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assistive Eyes — Accessibility Mode</title>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #060910;
-            --cyan: #00d2ff;
-            --cyan-glow: rgba(0, 210, 255, 0.15);
-            --green: #00e5a0;
-            --green-glow: rgba(0, 229, 160, 0.15);
-            --red: #ff4560;
-            --amber: #ffb830;
-            --amber-glow: rgba(255, 184, 48, 0.15);
-            --text: #e8edf5;
-            --dim: #3a4a6b;
-            --border: rgba(0, 210, 255, 0.12);
-        }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+  <meta charset="UTF-8">
 
-        body {
-            background: var(--bg);
-            font-family: 'DM Sans', sans-serif;
-            color: var(--text);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        /* Grid bg */
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-image:
-                linear-gradient(rgba(0,210,255,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0,210,255,0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-            pointer-events: none;
-        }
+  <title>Assistive Eyes - Blind Mode</title>
 
-        /* ── TOP NAV ── */
-        nav {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            padding: 16px 32px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-            background: rgba(6,9,16,0.9);
-            backdrop-filter: blur(20px);
-            z-index: 100;
-        }
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-        .nav-logo {
-            font-family: 'Syne', sans-serif;
-            font-size: 1rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+  <style>
 
-        .nav-logo span { color: var(--cyan); }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        .nav-badge {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.62rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--cyan);
-            border: 1px solid var(--border);
-            padding: 4px 12px;
-            border-radius: 50px;
-            background: var(--cyan-glow);
-        }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #1b5e20;
+      color: white;
+      height: 100vh;
+      overflow: hidden;
+    }
 
-        .btn-back {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.7rem;
-            color: #6b7fa3;
-            text-decoration: none;
-            padding: 6px 14px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            transition: all 0.2s;
-            letter-spacing: 1px;
-        }
+    .navbar {
+      background: rgba(0,0,0,0.25);
+      padding: 14px 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
 
-        .btn-back:hover {
-            color: var(--cyan);
-            border-color: var(--cyan);
-        }
+    .nav-logo {
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
 
-        /* ── MAIN ORBITING RING ── */
-        .orbit-container {
-            position: relative;
-            width: 260px;
-            height: 260px;
-            margin-bottom: 40px;
-        }
+    .mode-tag {
+      background: #4caf50;
+      padding: 5px 16px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
 
-        /* Outer ring */
-        .ring-outer {
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            border: 1px solid rgba(0, 210, 255, 0.15);
-        }
+    .nav-back {
+      color: white;
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      background: rgba(255,255,255,0.15);
+      padding: 7px 16px;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
 
-        /* Middle ring */
-        .ring-mid {
-            position: absolute;
-            inset: 20px;
-            border-radius: 50%;
-            border: 1px solid rgba(0, 210, 255, 0.08);
-        }
+    .nav-back:hover {
+      background: rgba(255,255,255,0.25);
+    }
 
-        /* Spinning arc */
-        .ring-spin {
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            border-top-color: var(--cyan);
-            border-right-color: var(--cyan);
-            animation: spin 4s linear infinite;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
+    .center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: calc(100vh - 56px);
+      padding: 20px;
+    }
 
-        .ring-spin.active {
-            opacity: 1;
-        }
+    .big-btn {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: #4caf50;
+      border: 6px solid rgba(255,255,255,0.3);
+      color: white;
+      cursor: pointer;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 36px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
 
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+    .big-btn .icon {
+      font-size: 3rem;
+      line-height: 1;
+    }
 
-        /* Center button */
-        .center-btn {
-            position: absolute;
-            inset: 40px;
-            border-radius: 50%;
-            background: var(--bg);
-            border: 2px solid rgba(0, 210, 255, 0.25);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
-        }
+    .big-btn:hover {
+      transform: scale(1.05);
+      background: #66bb6a;
+    }
 
-        .center-btn:hover,
-        .center-btn:focus {
-            border-color: var(--cyan);
-            box-shadow: 0 0 40px var(--cyan-glow), inset 0 0 30px var(--cyan-glow);
-            outline: none;
-        }
+    .big-btn:active {
+      transform: scale(0.97);
+    }
 
-        .center-btn.scanning {
-            border-color: var(--amber);
-            box-shadow: 0 0 40px var(--amber-glow), inset 0 0 30px var(--amber-glow);
-        }
+    .big-btn.scanning {
+      background: #ff9800;
+      animation: pulse 1s infinite;
+    }
 
-        .center-btn.success {
-            border-color: var(--green);
-            box-shadow: 0 0 40px var(--green-glow), inset 0 0 30px var(--green-glow);
-        }
+    .big-btn.success {
+      background: #43a047;
+    }
 
-        .center-btn.error {
-            border-color: var(--red);
-            box-shadow: 0 0 40px rgba(255, 69, 96, 0.15), inset 0 0 30px rgba(255, 69, 96, 0.1);
-        }
+    .big-btn.error {
+      background: #e53935;
+    }
 
-        .center-icon {
-            font-size: 2.2rem;
-            transition: all 0.3s;
-        }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+      50%       { box-shadow: 0 8px 48px rgba(255,152,0,0.6); }
+    }
 
-        .center-label {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.6rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: #6b7fa3;
-        }
+    .status-msg {
+      font-size: 1.6rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 10px;
+      min-height: 2.2rem;
+    }
 
-        /* Orbit dots */
-        .orbit-dot {
-            position: absolute;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--cyan);
-            box-shadow: 0 0 8px var(--cyan);
-            top: 50%;
-            left: 50%;
-            transform-origin: 0 0;
-        }
+    .sub-msg {
+      font-size: 1rem;
+      text-align: center;
+      opacity: 0.75;
+      line-height: 1.6;
+      margin-bottom: 32px;
+      min-height: 3rem;
+    }
 
-        .orbit-dot:nth-child(1) {
-            animation: orbit 6s linear infinite;
-        }
-        .orbit-dot:nth-child(2) {
-            animation: orbit 6s linear infinite;
-            animation-delay: -2s;
-            opacity: 0.5;
-        }
-        .orbit-dot:nth-child(3) {
-            animation: orbit 6s linear infinite;
-            animation-delay: -4s;
-            opacity: 0.25;
-        }
+    .keys {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
 
-        @keyframes orbit {
-            from { transform: rotate(0deg) translateX(126px) translateX(-3px) translateY(-3px); }
-            to { transform: rotate(360deg) translateX(126px) translateX(-3px) translateY(-3px); }
-        }
+    .key-hint {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
 
-        /* ── TEXT AREA ── */
-        .text-area {
-            text-align: center;
-            max-width: 500px;
-            padding: 0 20px;
-        }
+    .key {
+      background: rgba(255,255,255,0.15);
+      border: 2px solid rgba(255,255,255,0.3);
+      border-bottom: 4px solid rgba(0,0,0,0.25);
+      color: white;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      min-width: 60px;
+      text-align: center;
+    }
 
-        .main-msg {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            transition: all 0.4s;
-            min-height: 2.5rem;
-        }
+    .key-desc {
+      font-size: 0.72rem;
+      opacity: 0.6;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
 
-        .sub-msg {
-            font-size: 1rem;
-            color: #6b7fa3;
-            line-height: 1.7;
-            min-height: 3rem;
-            transition: all 0.4s;
-        }
+    .speaking-bar {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+      background: rgba(255,255,255,0.15);
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
 
-        /* ── KEYBOARD HINT ── */
-        .kb-hint {
-            margin-top: 40px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+    .speaking-bar.show {
+      display: flex;
+    }
 
-        .key {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 8px 20px;
-            background: #0f1520;
-            border: 1px solid rgba(0, 210, 255, 0.2);
-            border-bottom: 3px solid rgba(0, 210, 255, 0.3);
-            border-radius: 8px;
-            font-family: 'DM Mono', monospace;
-            font-size: 0.75rem;
-            letter-spacing: 2px;
-            color: var(--cyan);
-            text-transform: uppercase;
-            transition: all 0.1s;
-        }
+    .wave-bars {
+      display: flex;
+      gap: 3px;
+      align-items: center;
+    }
 
-        .key.pressed {
-            border-bottom-width: 1px;
-            transform: translateY(2px);
-            background: var(--cyan-glow);
-        }
+    .wb {
+      width: 4px;
+      background: white;
+      border-radius: 2px;
+      animation: wave 0.8s ease-in-out infinite;
+    }
 
-        .key-label {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.65rem;
-            color: #3a4a6b;
-            letter-spacing: 1px;
-        }
+    .wb:nth-child(1) { animation-delay: 0s;    height: 6px; }
+    .wb:nth-child(2) { animation-delay: .15s;  height: 12px; }
+    .wb:nth-child(3) { animation-delay: .3s;   height: 8px; }
+    .wb:nth-child(4) { animation-delay: .45s;  height: 14px; }
+    .wb:nth-child(5) { animation-delay: .6s;   height: 6px; }
 
-        /* ── RESULT PANEL (slides up) ── */
-        .result-panel {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            background: #0b0f1a;
-            border-top: 1px solid var(--border);
-            padding: 24px 32px;
-            transform: translateY(100%);
-            transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
-            z-index: 200;
-            max-height: 60vh;
-            overflow-y: auto;
-        }
+    @keyframes wave {
+      0%, 100% { transform: scaleY(0.4); }
+      50%       { transform: scaleY(1); }
+    }
 
-        .result-panel.visible {
-            transform: translateY(0);
-        }
+    .result-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      color: #333;
+      border-radius: 20px 20px 0 0;
+      padding: 24px 28px 32px;
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+      max-height: 65vh;
+      overflow-y: auto;
+      box-shadow: 0 -4px 30px rgba(0,0,0,0.3);
+    }
 
-        .result-panel-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
+    .result-sheet.open {
+      transform: translateY(0);
+    }
 
-        .result-med-name {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.6rem;
-            font-weight: 800;
-            color: var(--green);
-        }
+    .result-sheet::-webkit-scrollbar {
+      width: 4px;
+    }
 
-        .result-med-generic {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.7rem;
-            color: #6b7fa3;
-            margin-top: 2px;
-        }
+    .result-sheet::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 2px;
+    }
 
-        .close-btn {
-            background: none;
-            border: 1px solid var(--border);
-            color: #6b7fa3;
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
+    .sheet-handle {
+      width: 40px;
+      height: 4px;
+      background: #ddd;
+      border-radius: 2px;
+      margin: 0 auto 20px;
+    }
 
-        .close-btn:hover {
-            color: var(--text);
-            border-color: var(--text);
-        }
+    .sheet-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
 
-        .result-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
-        }
+    .sheet-name {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #2e7d32;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
 
-        .result-item {
-            padding: 14px;
-            background: #0f1520;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-        }
+    .sheet-generic {
+      font-size: 0.85rem;
+      color: #777;
+    }
 
-        .result-item-key {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.6rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--dim);
-            margin-bottom: 6px;
-        }
+    .close-btn {
+      background: #f5f5f5;
+      border: none;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
 
-        .result-item-val {
-            font-size: 0.85rem;
-            color: #9aafc7;
-            line-height: 1.6;
-        }
+    .close-btn:hover {
+      background: #eee;
+    }
 
-        .result-warning {
-            margin-top: 12px;
-            padding: 12px 16px;
-            background: rgba(255, 69, 96, 0.07);
-            border: 1px solid rgba(255, 69, 96, 0.2);
-            border-radius: 10px;
-            font-size: 0.83rem;
-            color: #ffb3bf;
-            display: none;
-        }
+    .sheet-badge {
+      display: inline-block;
+      background: #e8f5e9;
+      color: #2e7d32;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 4px 14px;
+      border-radius: 20px;
+      border: 1px solid #a5d6a7;
+      margin-bottom: 18px;
+    }
 
-        .result-warning.visible { display: block; }
+    .sheet-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
 
-        .speaking-bar {
-            margin-top: 16px;
-            display: none;
-            align-items: center;
-            gap: 8px;
-            font-family: 'DM Mono', monospace;
-            font-size: 0.68rem;
-            letter-spacing: 2px;
-            color: var(--cyan);
-        }
+    .sheet-item {
+      background: #f9f9f9;
+      border-radius: 10px;
+      padding: 14px;
+      border: 1px solid #eee;
+    }
 
-        .speaking-bar.visible { display: flex; }
+    .sheet-item.full {
+      grid-column: 1 / -1;
+    }
 
-        .speaking-waves {
-            display: flex;
-            gap: 3px;
-            align-items: center;
-            height: 14px;
-        }
+    .item-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #999;
+      margin-bottom: 6px;
+    }
 
-        .wave {
-            width: 3px;
-            background: var(--cyan);
-            border-radius: 2px;
-            animation: wave-anim 1s ease-in-out infinite;
-        }
+    .item-value {
+      font-size: 0.9rem;
+      color: #333;
+      line-height: 1.6;
+    }
 
-        .wave:nth-child(1) { animation-delay: 0s; }
-        .wave:nth-child(2) { animation-delay: 0.15s; }
-        .wave:nth-child(3) { animation-delay: 0.3s; }
-        .wave:nth-child(4) { animation-delay: 0.45s; }
-        .wave:nth-child(5) { animation-delay: 0.6s; }
+    .warn-sheet {
+      background: #fff3e0;
+      border: 1px solid #ffcc80;
+      border-left: 4px solid #ff9800;
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: none;
+    }
 
-        @keyframes wave-anim {
-            0%, 100% { height: 4px; }
-            50% { height: 14px; }
-        }
+    .warn-sheet.show {
+      display: block;
+    }
 
-        video, canvas { display: none; }
-    </style>
+    .warn-title-s {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #e65100;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .warn-text-s {
+      font-size: 0.88rem;
+      color: #bf360c;
+      line-height: 1.6;
+    }
+
+    video, canvas {
+      display: none;
+    }
+
+  </style>
+
 </head>
+
 <body>
 
-    <nav>
-        <div class="nav-logo">👁 Assistive<span>Eyes</span></div>
-        <div class="nav-badge">♿ Accessibility Mode</div>
-        <a class="btn-back" href="/">← Visual Mode</a>
-    </nav>
+  <nav class="navbar">
+    <div class="nav-logo">👁 Assistive Eyes</div>
+    <div class="mode-tag">♿ Blind Mode</div>
+    <a class="nav-back" href="/">← Visual Mode</a>
+  </nav>
 
-    <video id="videoFeed" autoplay playsinline></video>
-    <canvas id="canvas"></canvas>
+  <video id="videoFeed" autoplay playsinline></video>
 
-    <!-- ORBIT UI -->
-    <div class="orbit-container">
-        <div class="ring-outer"></div>
-        <div class="ring-mid"></div>
-        <div class="ring-spin" id="ringSpinner"></div>
-        <div class="orbit-dot"></div>
-        <div class="orbit-dot"></div>
-        <div class="orbit-dot"></div>
+  <canvas id="canvas"></canvas>
 
-        <button class="center-btn" id="centerBtn" onclick="performScan()" tabindex="0">
-            <div class="center-icon" id="centerIcon">👁</div>
-            <div class="center-label" id="centerLabel">PRESS SPACE</div>
-        </button>
+  <div class="center">
+
+    <button class="big-btn" id="bigBtn" onclick="doScan()">
+      <span class="icon">🎙</span>
+      <span>TAP TO SCAN</span>
+    </button>
+
+    <div class="status-msg" id="statusMsg">Ready to Scan</div>
+
+    <div class="sub-msg" id="subMsg">
+      Hold medicine label in front of camera<br>then press Spacebar or tap button
     </div>
 
-    <!-- TEXT -->
-    <div class="text-area">
-        <div class="main-msg" id="mainMsg">Ready to Scan</div>
-        <div class="sub-msg" id="subMsg">Hold a medicine label in front of your camera and press Spacebar</div>
+    <div class="keys">
+      <div class="key-hint"><div class="key">Space</div><div class="key-desc">Scan</div></div>
+      <div class="key-hint"><div class="key">R</div><div class="key-desc">Repeat</div></div>
+      <div class="key-hint"><div class="key">Esc</div><div class="key-desc">Dismiss</div></div>
     </div>
 
-    <!-- KB HINT -->
-    <div class="kb-hint">
-        <span class="key" id="spaceKey">SPACEBAR</span>
-        <span class="key-label">to scan</span>
-        &nbsp;&nbsp;
-        <span class="key">R</span>
-        <span class="key-label">to repeat</span>
-        &nbsp;&nbsp;
-        <span class="key">ESC</span>
-        <span class="key-label">to dismiss</span>
+    <div class="speaking-bar" id="speakBar">
+      <div class="wave-bars">
+        <div class="wb"></div>
+        <div class="wb"></div>
+        <div class="wb"></div>
+        <div class="wb"></div>
+        <div class="wb"></div>
+      </div>
+      Speaking...
     </div>
 
-    <!-- RESULT SLIDE-UP PANEL -->
-    <div class="result-panel" id="resultPanel">
-        <div class="result-panel-header">
-            <div>
-                <div class="result-med-name" id="rName">—</div>
-                <div class="result-med-generic" id="rGeneric">—</div>
-            </div>
-            <button class="close-btn" onclick="closeResult()">✕</button>
-        </div>
+  </div>
 
-        <div class="speaking-bar" id="speakingBar">
-            <div class="speaking-waves">
-                <div class="wave"></div>
-                <div class="wave"></div>
-                <div class="wave"></div>
-                <div class="wave"></div>
-                <div class="wave"></div>
-            </div>
-            SPEAKING...
-        </div>
+  <div class="result-sheet" id="resultSheet">
 
-        <div class="result-grid">
-            <div class="result-item">
-                <div class="result-item-key">Uses</div>
-                <div class="result-item-val" id="rUses">—</div>
-            </div>
-            <div class="result-item">
-                <div class="result-item-key">Dosage</div>
-                <div class="result-item-val" id="rDosage">—</div>
-            </div>
-            <div class="result-item">
-                <div class="result-item-key">Side Effects</div>
-                <div class="result-item-val" id="rSideEffects">—</div>
-            </div>
-        </div>
-        <div class="result-warning" id="rWarning">⚠ <span id="rWarningText">—</span></div>
+    <div class="sheet-handle"></div>
+
+    <div class="sheet-header">
+      <div>
+        <div class="sheet-name" id="sheetName">—</div>
+        <div class="sheet-generic" id="sheetGeneric">—</div>
+      </div>
+      <button class="close-btn" onclick="closeSheet()">✕</button>
     </div>
 
-    <script>
-        const video = document.getElementById('videoFeed');
-        const canvas = document.getElementById('canvas');
-        const centerBtn = document.getElementById('centerBtn');
-        const centerIcon = document.getElementById('centerIcon');
-        const centerLabel = document.getElementById('centerLabel');
-        const mainMsg = document.getElementById('mainMsg');
-        const subMsg = document.getElementById('subMsg');
-        const ringSpinner = document.getElementById('ringSpinner');
-        const spaceKey = document.getElementById('spaceKey');
+    <span class="sheet-badge" id="sheetCat">—</span>
 
-        let isScanning = false;
-        let lastScript = '';
+    <div class="sheet-grid">
+      <div class="sheet-item full"><div class="item-label">Used For</div><div class="item-value" id="sheetUses">—</div></div>
+      <div class="sheet-item"><div class="item-label">Dosage</div><div class="item-value" id="sheetDosage">—</div></div>
+      <div class="sheet-item"><div class="item-label">Side Effects</div><div class="item-value" id="sheetSide">—</div></div>
+    </div>
 
-        function speak(text, onDone = null) {
-            window.speechSynthesis.cancel();
-            const utt = new SpeechSynthesisUtterance(text);
-            utt.rate = 0.92;
-            utt.pitch = 1;
-            utt.volume = 1;
-            if (onDone) utt.onend = onDone;
-            window.speechSynthesis.speak(utt);
-            document.getElementById('speakingBar').classList.add('visible');
-            utt.onend = () => {
-                document.getElementById('speakingBar').classList.remove('visible');
-                if (onDone) onDone();
-            };
-        }
+    <div class="warn-sheet" id="warnSheet">
+      <div class="warn-title-s">⚠ Warning</div>
+      <div class="warn-text-s" id="warnSheetText">—</div>
+    </div>
 
-        function setState(state) {
-            centerBtn.className = 'center-btn';
-            if (state === 'ready') {
-                centerIcon.textContent = '👁';
-                centerLabel.textContent = 'PRESS SPACE';
-                ringSpinner.classList.remove('active');
-            } else if (state === 'scanning') {
-                centerBtn.classList.add('scanning');
-                centerIcon.textContent = '⏳';
-                centerLabel.textContent = 'SCANNING';
-                ringSpinner.classList.add('active');
-            } else if (state === 'success') {
-                centerBtn.classList.add('success');
-                centerIcon.textContent = '✓';
-                centerLabel.textContent = 'DETECTED';
-                ringSpinner.classList.remove('active');
-            } else if (state === 'error') {
-                centerBtn.classList.add('error');
-                centerIcon.textContent = '✕';
-                centerLabel.textContent = 'NOT FOUND';
-                ringSpinner.classList.remove('active');
-            }
-        }
+  </div>
 
-        async function startCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-                video.srcObject = stream;
-                setState('ready');
-                mainMsg.textContent = 'Ready to Scan';
-                subMsg.textContent = 'Hold medicine label to camera and press Spacebar';
-                speak('Assistive Eyes accessibility mode is ready. Press spacebar to scan a medicine label.');
-            } catch (err) {
-                setState('error');
-                mainMsg.textContent = 'Camera Error';
-                subMsg.textContent = err.message;
-                speak('Camera error. Please check camera permissions.');
-            }
-        }
+  <script>
 
-        async function performScan() {
-            if (isScanning) return;
-            isScanning = true;
+    const video  = document.getElementById('videoFeed');
+    const canvas = document.getElementById('canvas');
+    const bigBtn = document.getElementById('bigBtn');
+    const statusMsg = document.getElementById('statusMsg');
+    const subMsg    = document.getElementById('subMsg');
 
-            setState('scanning');
-            mainMsg.textContent = 'Scanning...';
-            subMsg.textContent = 'Hold the medicine label still';
-            speak('Scanning. Please hold still.');
+    let scanning   = false;
+    let lastScript = '';
 
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            const imageData = canvas.toDataURL('image/jpeg', 0.85);
+    function speak(text, cb = null) {
 
-            spaceKey.classList.add('pressed');
-            setTimeout(() => spaceKey.classList.remove('pressed'), 150);
+      window.speechSynthesis.cancel();
 
-            try {
-                const res = await fetch('/api/scan/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ image: imageData })
-                });
-                const data = await res.json();
+      const u = new SpeechSynthesisUtterance(text);
 
-                if (data.success) {
-                    const m = data.medicine;
-                    setState('success');
-                    mainMsg.textContent = m.name;
-                    subMsg.textContent = m.generic_name + ' · ' + m.category;
+      u.rate   = 0.92;
+      u.pitch  = 1;
+      u.volume = 1;
 
-                    document.getElementById('rName').textContent = m.name;
-                    document.getElementById('rGeneric').textContent = m.generic_name + ' · ' + m.category;
-                    document.getElementById('rUses').textContent = m.uses;
-                    document.getElementById('rDosage').textContent = m.dosage;
-                    document.getElementById('rSideEffects').textContent = m.side_effects;
+      document.getElementById('speakBar').classList.add('show');
 
-                    const warn = document.getElementById('rWarning');
-                    if (m.warnings) {
-                        document.getElementById('rWarningText').textContent = m.warnings;
-                        warn.classList.add('visible');
-                    } else {
-                        warn.classList.remove('visible');
-                    }
+      u.onend = () => {
+        document.getElementById('speakBar').classList.remove('show');
+        if (cb) cb();
+      };
 
-                    document.getElementById('resultPanel').classList.add('visible');
+      window.speechSynthesis.speak(u);
 
-                    lastScript = `Medicine detected: ${m.name}. Also known as ${m.generic_name}. Category: ${m.category}. Used for: ${m.uses}. Dosage: ${m.dosage}. Side effects include: ${m.side_effects}. ${m.warnings ? 'Warning: ' + m.warnings : ''} Press spacebar to scan another medicine.`;
+    }
 
-                    speak(lastScript, () => { isScanning = false; });
+    function setBtnState(state) {
 
-                } else {
-                    setState('error');
-                    mainMsg.textContent = 'Not Found';
-                    subMsg.textContent = data.message;
-                    speak(data.message + '. Press spacebar to try again.', () => {
-                        isScanning = false;
-                        setState('ready');
-                        mainMsg.textContent = 'Ready to Scan';
-                        subMsg.textContent = 'Press Spacebar to scan again';
-                    });
-                }
-            } catch (e) {
-                setState('error');
-                mainMsg.textContent = 'Network Error';
-                subMsg.textContent = 'Is the server running?';
-                speak('Network error. Please check the server.', () => {
-                    isScanning = false;
-                    setState('ready');
-                });
-            }
-        }
+      bigBtn.className = 'big-btn';
 
-        function closeResult() {
-            document.getElementById('resultPanel').classList.remove('visible');
-            setState('ready');
-            mainMsg.textContent = 'Ready to Scan';
-            subMsg.textContent = 'Press Spacebar to scan a medicine label';
-            isScanning = false;
-        }
+      if (state === 'scanning') {
+        bigBtn.classList.add('scanning');
+        bigBtn.querySelector('span:last-child').textContent = 'SCANNING...';
+        bigBtn.querySelector('.icon').textContent = '⏳';
+      } else if (state === 'success') {
+        bigBtn.classList.add('success');
+        bigBtn.querySelector('span:last-child').textContent = 'FOUND!';
+        bigBtn.querySelector('.icon').textContent = '✅';
+      } else if (state === 'error') {
+        bigBtn.classList.add('error');
+        bigBtn.querySelector('span:last-child').textContent = 'NOT FOUND';
+        bigBtn.querySelector('.icon').textContent = '❌';
+      } else {
+        bigBtn.querySelector('span:last-child').textContent = 'TAP TO SCAN';
+        bigBtn.querySelector('.icon').textContent = '🎙';
+      }
 
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space') { e.preventDefault(); performScan(); }
-            if (e.code === 'KeyR') { if (lastScript) speak(lastScript); }
-            if (e.code === 'Escape') { closeResult(); }
+    }
+
+    async function startCamera() {
+
+      try {
+
+        const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+
+        video.srcObject = s;
+
+        speak('Assistive Eyes is ready. Press spacebar or tap the button to scan a medicine label.');
+
+      } catch(e) {
+
+        setBtnState('error');
+        statusMsg.textContent = 'Camera Error';
+        speak('Camera error. Please check camera permissions.');
+
+      }
+
+    }
+
+    async function doScan() {
+
+      if (scanning) return;
+
+      scanning = true;
+
+      setBtnState('scanning');
+
+      statusMsg.textContent = 'Scanning...';
+      subMsg.textContent    = 'Hold the medicine label still';
+
+      speak('Scanning. Please hold still.');
+
+      canvas.width  = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+
+      const img = canvas.toDataURL('image/jpeg', 0.85);
+
+      try {
+
+        const res  = await fetch('/api/scan/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: img })
         });
 
-        startCamera();
-    </script>
+        const data = await res.json();
+
+        if (data.success) {
+
+          const m = data.medicine;
+
+          setBtnState('success');
+
+          statusMsg.textContent = m.name;
+          subMsg.textContent    = m.category + (m.generic_name ? ' · ' + m.generic_name : '');
+
+          document.getElementById('sheetName').textContent    = m.name;
+          document.getElementById('sheetGeneric').textContent = m.generic_name ? 'Also known as: ' + m.generic_name : '';
+          document.getElementById('sheetCat').textContent     = m.category;
+          document.getElementById('sheetUses').textContent    = m.uses;
+          document.getElementById('sheetDosage').textContent  = m.dosage;
+          document.getElementById('sheetSide').textContent    = m.side_effects;
+
+          const ws = document.getElementById('warnSheet');
+
+          if (m.warnings) {
+            document.getElementById('warnSheetText').textContent = m.warnings;
+            ws.classList.add('show');
+          } else {
+            ws.classList.remove('show');
+          }
+
+          document.getElementById('resultSheet').classList.add('open');
+
+          lastScript = `Medicine detected: ${m.name}. ${m.generic_name ? 'Also known as ' + m.generic_name + '.' : ''} Category: ${m.category}. Used for: ${m.uses}. Dosage: ${m.dosage}. Side effects: ${m.side_effects}. ${m.warnings ? 'Warning: ' + m.warnings : ''} Press spacebar to scan again.`;
+
+          speak(lastScript, () => { scanning = false; });
+
+        } else {
+
+          setBtnState('error');
+
+          statusMsg.textContent = 'Not Found';
+          subMsg.textContent    = data.message;
+
+          speak(data.message + '. Press spacebar to try again.', () => {
+            scanning = false;
+            setBtnState('ready');
+            statusMsg.textContent = 'Ready to Scan';
+            subMsg.textContent    = 'Press Spacebar to scan again';
+          });
+
+        }
+
+      } catch(e) {
+
+        setBtnState('error');
+        statusMsg.textContent = 'Network Error';
+        speak('Network error.', () => { scanning = false; setBtnState('ready'); });
+
+      }
+
+    }
+
+    function closeSheet() {
+
+      document.getElementById('resultSheet').classList.remove('open');
+
+      setBtnState('ready');
+
+      statusMsg.textContent = 'Ready to Scan';
+      subMsg.textContent    = 'Press Spacebar to scan a medicine label';
+
+      scanning = false;
+
+    }
+
+    // Keyboard shortcuts: Space = scan, R = repeat audio, Esc = close sheet
+    document.addEventListener('keydown', e => {
+
+      if (e.code === 'Space') { e.preventDefault(); doScan(); }
+
+      if (e.code === 'KeyR' && lastScript) speak(lastScript);
+
+      if (e.code === 'Escape') closeSheet();
+
+    });
+
+    startCamera();
+
+  </script>
+
 </body>
+
 </html>

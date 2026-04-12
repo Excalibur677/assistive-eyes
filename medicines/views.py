@@ -71,7 +71,7 @@ def scan_medicine(request):
 
 def get_all_medicines(request):
     medicines = Medicine.objects.all().values(
-        'name', 'generic_name', 'category', 'uses', 'dosage', 'side_effects'
+        'id','name', 'generic_name', 'category', 'uses', 'dosage', 'side_effects','warnings'
     )
     return JsonResponse({'medicines': list(medicines)})
 
